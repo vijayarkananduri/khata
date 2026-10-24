@@ -40,7 +40,7 @@ class KhataRepository @Inject constructor(private val dao: KhataDao) {
     }
 
     suspend fun correct(transaction: TransactionEntity, categoryId: String, transfer: Boolean = false) {
-        val type = if (transfer) "TRANSFER" else "EXPENSE"
+        val type = if (transfer) "TRANSFER" else transaction.type
         val category = if (transfer) "transfers" else categoryId
         dao.correctTransaction(transaction.id, category, type)
         if (!transfer && categoryId != "uncategorized") {

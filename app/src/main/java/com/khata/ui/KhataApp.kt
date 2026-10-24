@@ -8,6 +8,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -208,8 +209,8 @@ private fun HomeScreen(
     val monthStart = today.withDayOfMonth(1)
     val lastMonth = today.minusMonths(1)
     val lastDays = minOf(today.dayOfMonth, lastMonth.lengthOfMonth())
-    val currentSpend = transactions.filter { it.type == "EXPENSE" && runCatching { LocalDate.parse(it.date) }.getOrNull()?.let { d -> d.year == today.year && d.month == today.month && d.dayOfMonth <= today.dayOfMonth } == true }.sumOf { it.amountPaise }
-    val previousSpend = transactions.filter { it.type == "EXPENSE" && runCatching { LocalDate.parse(it.date) }.getOrNull()?.let { d -> d.year == lastMonth.year && d.month == lastMonth.month && d.dayOfMonth <= lastDays } == true }.sumOf { it.amountPaise }
+    val currentSpend = netSpend(transactions.filter { (it.type == "EXPENSE" || it.type == "REFUND") && runCatching { LocalDate.parse(it.date) }.getOrNull()?.let { d -> d.year == today.year && d.month == today.month && d.dayOfMonth <= today.dayOfMonth } == true })
+    val previousSpend = netSpend(transactions.filter { (it.type == "EXPENSE" || it.type == "REFUND") && runCatching { LocalDate.parse(it.date) }.getOrNull()?.let { d -> d.year == lastMonth.year && d.month == lastMonth.month && d.dayOfMonth <= lastDays } == true })
     val monthTransactions = transactions.filter { it.date >= monthStart.toString() && it.date <= today.toString() && it.type == "EXPENSE" }
     val top = monthTransactions.groupBy { it.categoryId }.mapValues { (_, list) -> list.sumOf { it.amountPaise } }.entries.sortedByDescending { it.value }.take(3)
     val monthName = today.format(DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH))
@@ -243,11 +244,11 @@ private fun HomeScreen(
             FilterChip(selected = settings.compareMode, onClick = { onCompareMode(true) }, label = { Text("Compare") })
         }
         val budgetMode = !settings.compareMode && settings.monthlyBudgetPaise > 0
-        val canShow = budgetMode || previousSpend > 0 || (currentSpend == 0L && transactions.isEmpty())
+        val canShow = budgetMode || previousSpend > 0 || currentSpend > 0
         Spacer(Modifier.height(6.dp))
         if (canShow) {
             val fraction = if (budgetMode) (currentSpend.toFloat() / settings.monthlyBudgetPaise.coerceAtLeast(1)).coerceIn(0f, 1f)
-            else if (maxOf(currentSpend, previousSpend) == 0L) 0f else (minOf(currentSpend, previousSpend).toFloat() / maxOf(currentSpend, previousSpend)).coerceIn(0f, 1f)
+            else if (previousSpend == 0L && currentSpend > 0L) 1f else if (maxOf(currentSpend, previousSpend) == 0L) 0f else (minOf(currentSpend, previousSpend).toFloat() / maxOf(currentSpend, previousSpend)).coerceIn(0f, 1f)
             val ringColor = if (budgetMode) when { fraction < .75f -> MaterialTheme.colorScheme.secondary; fraction < 1f -> MaterialTheme.colorScheme.tertiary; else -> MaterialTheme.colorScheme.primary }
             else when { previousSpend > 0 && currentSpend > previousSpend * 1.5 -> MaterialTheme.colorScheme.error; currentSpend < previousSpend * .95 -> MaterialTheme.colorScheme.secondary; currentSpend > previousSpend * 1.05 -> MaterialTheme.colorScheme.primary; else -> MaterialTheme.colorScheme.tertiary }
             val caption = when {
@@ -308,7 +309,7 @@ private fun RingCard(amount: Long, fraction: Float, color: Color, caption: Strin
                 drawArc(color = color, startAngle = -90f, sweepAngle = 360f * animated, useCenter = false, style = Stroke(stroke, cap = StrokeCap.Round))
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(money(amount), fontSize = 30.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontFeatureSettings = "tnum")
+                Text(money(amount), fontSize = 30.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
                 Text(if (budgetMode) "spent this month" else "this month", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -338,7 +339,7 @@ private fun CategoryCard(id: String, label: String, amount: Long, percent: Int, 
                 CategoryIcon(id, Modifier.size(20.dp)); Spacer(Modifier.weight(1f)); Icon(Icons.Outlined.ChevronRight, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(label, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
-            Text(moneyShort(amount), fontWeight = FontWeight.Medium, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface, fontFeatureSettings = "tnum")
+            Text(moneyShort(amount), fontWeight = FontWeight.Medium, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
             Text("$percent%", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -354,7 +355,7 @@ private fun TransactionRow(transaction: TransactionEntity, onClick: () -> Unit) 
             Text(transaction.rawText.ifBlank { "Transaction" }, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
             Text("${KhataCategories.names[transaction.categoryId] ?: "Uncategorized"} · ${transaction.date}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Text((if (transaction.direction == "CREDIT") "+" else "−") + money(transaction.amountPaise), color = if (transaction.direction == "CREDIT") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium, fontFeatureSettings = "tnum")
+        Text((if (transaction.direction == "CREDIT") "+" else "−") + money(transaction.amountPaise), color = if (transaction.direction == "CREDIT") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
     }
 }
 
@@ -371,7 +372,7 @@ private fun ReviewScreen(queue: List<TransactionEntity>, categories: List<Pair<S
             Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(22.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(20.dp)) {
                     Text(txn.rawText, fontWeight = FontWeight.Medium, fontSize = 20.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Text("${if (txn.direction == "CREDIT") "+" else "−"}${money(txn.amountPaise)}", fontSize = 32.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(top = 12.dp), fontFeatureSettings = "tnum")
+                    Text("${if (txn.direction == "CREDIT") "+" else "−"}${money(txn.amountPaise)}", fontSize = 32.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
                     Text(txn.date, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                     Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) { Text(txn.rawText, modifier = Modifier.padding(12.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
@@ -400,7 +401,7 @@ private fun CalendarScreen(transactions: List<TransactionEntity>, onTransaction:
     val days = month.lengthOfMonth()
     val offset = month.atDay(1).dayOfWeek.value % 7
     val today = LocalDate.now()
-    val spendByDay = transactions.filter { it.type == "EXPENSE" && it.date.startsWith(month.toString()) }.groupBy { it.date.takeLast(2).toIntOrNull() ?: 1 }.mapValues { it.value.sumOf { t -> t.amountPaise } }
+    val spendByDay = transactions.filter { (it.type == "EXPENSE" || it.type == "REFUND") && it.date.startsWith(month.toString()) }.groupBy { it.date.takeLast(2).toIntOrNull() ?: 1 }.mapValues { netSpend(it.value) }
     val maxSpend = spendByDay.values.maxOrNull()?.coerceAtLeast(1) ?: 1
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -446,7 +447,7 @@ private fun AnalysisScreen(transactions: List<TransactionEntity>, categories: Li
         }
     }
     val byCategory = transactions.filter { it.type == "EXPENSE" }.groupBy { it.categoryId }.mapValues { it.value.sumOf { t -> t.amountPaise } }.entries.sortedByDescending { it.value }
-    val merchantTop = transactions.groupBy { it.normalizedMerchant }.mapValues { it.value.sumOf { t -> t.amountPaise } }.entries.sortedByDescending { it.value }.take(5)
+    val merchantTop = transactions.filter { it.type == "EXPENSE" || it.type == "REFUND" }.groupBy { it.normalizedMerchant }.mapValues { netSpend(it.value) }.filterValues { it > 0L }.entries.sortedByDescending { it.value }.take(5)
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Text("Analysis", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 14.dp, bottom = 12.dp))
         OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, leadingIcon = { Icon(Icons.Outlined.Search, null) }, placeholder = { Text("Merchant, category, amount (<500)") }, shape = RoundedCornerShape(16.dp))
@@ -463,7 +464,7 @@ private fun AnalysisScreen(transactions: List<TransactionEntity>, categories: Li
                     Row(Modifier.fillMaxWidth().padding(vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("${index + 1}", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(28.dp))
                         Text(entry.key.ifBlank { "Unknown" }, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(money(entry.value), fontWeight = FontWeight.Medium, fontFeatureSettings = "tnum")
+                        Text(money(entry.value), fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
                     }
                 }
                 Spacer(Modifier.height(16.dp)); SectionTitle("Category breakdown")
@@ -472,7 +473,7 @@ private fun AnalysisScreen(transactions: List<TransactionEntity>, categories: Li
                     Row(Modifier.fillMaxWidth().clickable { onCategory(item.key) }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                         CategoryIcon(item.key, Modifier.size(22.dp)); Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(KhataCategories.names[item.key] ?: item.key); Text(money(item.value), fontFeatureSettings = "tnum") }
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(KhataCategories.names[item.key] ?: item.key); Text(money(item.value), style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum")) }
                             LinearProgressIndicator(progress = { (item.value.toFloat() / total).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().padding(top = 5.dp).height(5.dp).clip(CircleShape), color = categoryAccent(item.key), trackColor = MaterialTheme.colorScheme.surfaceVariant)
                         }
                     }
@@ -486,7 +487,7 @@ private fun AnalysisScreen(transactions: List<TransactionEntity>, categories: Li
 @Composable
 private fun YearHeatmap(transactions: List<TransactionEntity>) {
     val year = LocalDate.now().year
-    val byDate = transactions.filter { it.date.startsWith(year.toString()) && it.type == "EXPENSE" }.groupBy { it.date }.mapValues { it.value.sumOf { t -> t.amountPaise } }
+    val byDate = transactions.filter { it.date.startsWith(year.toString()) && (it.type == "EXPENSE" || it.type == "REFUND") }.groupBy { it.date }.mapValues { netSpend(it.value) }
     val max = byDate.values.maxOrNull()?.coerceAtLeast(1) ?: 1
     val start = LocalDate.of(year, 1, 1)
     val cells = (0 until (if (start.dayOfWeek.value == 7) 0 else start.dayOfWeek.value)).map { "" } + (0 until (if (LocalDate.of(year, 1, 1).isLeapYear) 366 else 365)).map { start.plusDays(it.toLong()).toString() }
@@ -510,7 +511,7 @@ private fun CategoryDetailScreen(categoryId: String, transactions: List<Transact
     val total = chosen.sumOf { it.amountPaise }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, "Back") }; CategoryIcon(categoryId, Modifier.size(24.dp)); Spacer(Modifier.width(8.dp)); Text(KhataCategories.names[categoryId] ?: categoryId, style = MaterialTheme.typography.titleLarge) }
-        Text(money(total), fontSize = 30.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(start = 8.dp, top = 12.dp), fontFeatureSettings = "tnum")
+        Text(money(total), fontSize = 30.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(start = 8.dp, top = 12.dp), style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
         Text("${chosen.size} transactions", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 8.dp))
         Spacer(Modifier.height(18.dp)); SectionTitle("Transactions")
         LazyColumn { items(chosen) { TransactionRow(it) { onTransaction(it) } } }
@@ -670,6 +671,14 @@ private fun money(paise: Long): String {
     val rupees = paise / 100
     return "₹" + NumberFormat.getIntegerInstance(Locale("en", "IN")).format(rupees)
 }
+private fun netSpend(transactions: List<TransactionEntity>): Long = transactions.sumOf { transaction ->
+    when {
+        transaction.type == "REFUND" && transaction.direction == "CREDIT" -> -transaction.amountPaise
+        transaction.type == "EXPENSE" && transaction.direction == "DEBIT" -> transaction.amountPaise
+        else -> 0L
+    }
+}.coerceAtLeast(0L)
+
 private fun moneyShort(paise: Long): String {
     val rupees = paise / 100
     return when { rupees >= 100_000 -> "₹${String.format(Locale.US, "%.1f", rupees / 100_000.0)}L"; rupees >= 1_000 -> "₹${String.format(Locale.US, "%.1f", rupees / 1_000.0)}k"; else -> "₹$rupees" }
