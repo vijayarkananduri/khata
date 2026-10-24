@@ -30,8 +30,8 @@ object KhataCategories {
         "entertainment" to Regex("bookmyshow|pvr|inox|movie|hotstar"),
         "subscriptions" to Regex("amazon prime|netflix|spotify|youtube premium|icloud|prime video")
     )
-    fun seedCategories() = names.mapIndexed { index, (id, name) ->
-        com.khata.data.db.CategoryEntity(id, name, id, colors[id] ?: "muted", sortOrder = index)
+    fun seedCategories() = names.entries.mapIndexed { index, entry ->
+        com.khata.data.db.CategoryEntity(entry.key, entry.value, entry.key, colors[entry.key] ?: "muted", sortOrder = index)
     }
 }
 

@@ -18,7 +18,7 @@ class KhataRepository @Inject constructor(private val dao: KhataDao) {
     val categories = dao.observeCategories()
 
     suspend fun seedCategories() {
-        KhataCategories.seedCategories().forEach { dao.insertCategory(it) }
+        for (category in KhataCategories.seedCategories()) dao.insertCategory(category)
     }
 
     suspend fun addTransaction(merchant: String, amountPaise: Long, direction: String, date: LocalDate, note: String, chosenCategory: String? = null) {
