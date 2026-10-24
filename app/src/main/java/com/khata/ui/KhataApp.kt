@@ -695,8 +695,6 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 private fun AddAccountDialog(onDismiss: () -> Unit, onSave: (String, String, String, Long) -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var institution by rememberSaveable { mutableStateOf("") }
@@ -727,6 +725,7 @@ private fun AddAccountDialog(onDismiss: () -> Unit, onSave: (String, String, Str
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
 private fun QuickAddDialog(accounts: List<AccountEntity>, onDismiss: () -> Unit, onSave: (String, Long, String, LocalDate, String, String?, String) -> Unit) {
     var merchant by rememberSaveable { mutableStateOf("") }
     var amount by rememberSaveable { mutableStateOf("") }
@@ -785,13 +784,21 @@ private fun QuickAddDialog(accounts: List<AccountEntity>, onDismiss: () -> Unit,
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
     if (showDatePicker) {
-        val datePicker = rememberDatePickerState(initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
+        val today = LocalDate.now()
+        val datePicker = rememberDatePickerState(
+            initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                    java.time.Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate() <= today
+                override fun isSelectableYear(year: Int): Boolean = year <= today.year
+            }
+        )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = { TextButton(onClick = {
                 datePicker.selectedDateMillis?.let { millis ->
                     val picked = java.time.Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
-                    dateText = minOf(picked, LocalDate.now()).toString()
+                    if (picked <= LocalDate.now()) dateText = picked.toString()
                 }
                 showDatePicker = false
             }) { Text("Choose date") } },

@@ -60,10 +60,12 @@ class KhataViewModel @Inject constructor(
     fun addTransaction(merchant: String, amountPaise: Long, direction: String, date: LocalDate, note: String, chosenCategory: String? = null, accountId: String = "manual") = viewModelScope.launch {
         val today = LocalDate.now()
         val monthPrefix = today.toString().take(7)
-        val before = transactions.value.filter { it.type == "EXPENSE" && it.direction == "DEBIT" && it.date.startsWith(monthPrefix) }.sumOf { it.amountPaise }
-        repository.addTransaction(merchant, amountPaise, direction, date, note, chosenCategory, accountId)
+        val before = transactions.value.filter { (it.type == "EXPENSE" || it.type == "REFUND") && it.date.startsWith(monthPrefix) }.sumOf {
+            if (it.type == "REFUND" && it.direction == "CREDIT") -it.amountPaise else if (it.type == "EXPENSE" && it.direction == "DEBIT") it.amountPaise else 0L
+        }.coerceAtLeast(0L)
+        val createdType = repository.addTransaction(merchant, amountPaise, direction, date, note, chosenCategory, accountId)
         val budget = settings.value.monthlyBudgetPaise
-        if (direction == "DEBIT" && date.toString().startsWith(monthPrefix) && budget > 0L && before <= budget && before + amountPaise > budget) {
+        if (createdType == "EXPENSE" && direction == "DEBIT" && date.toString().startsWith(monthPrefix) && budget > 0L && before <= budget && before + amountPaise > budget) {
             NotificationHelper.showBudgetExceeded(appContext, before + amountPaise, budget)
         }
     }

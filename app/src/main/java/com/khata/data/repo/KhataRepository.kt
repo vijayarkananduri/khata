@@ -52,10 +52,10 @@ class KhataRepository @Inject constructor(private val dao: KhataDao) {
         note: String,
         chosenCategory: String? = null,
         accountId: String = "manual"
-    ) {
+    ): String? {
         val normalized = Categorizer.normalize(merchant)
         val old = dao.transactionsBetween(date.toString(), date.toString())
-        if (old.any { it.normalizedMerchant == normalized && it.amountPaise == amountPaise && it.direction == direction && it.accountId == accountId }) return
+        if (old.any { it.normalizedMerchant == normalized && it.amountPaise == amountPaise && it.direction == direction && it.accountId == accountId }) return null
         val result = Categorizer.classify(merchant, direction, dao.getRules())
         val category = chosenCategory ?: result.categoryId
         dao.insertTransaction(
@@ -76,6 +76,7 @@ class KhataRepository @Inject constructor(private val dao: KhataDao) {
             )
         )
         if (chosenCategory != null) ruleFor(normalized, chosenCategory)
+        return result.type
     }
 
     suspend fun correct(transaction: TransactionEntity, categoryId: String, transfer: Boolean = false) {
