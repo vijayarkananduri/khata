@@ -1,8 +1,17 @@
 package com.khata
 
+import android.Manifest
 import android.content.Intent
+import android.os.Build
+import android.provider.Settings as AndroidSettings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -28,10 +37,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,15 +54,20 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.content.ContextCompat
+import androidx.core.app.NotificationManagerCompat
+import com.khata.data.db.AccountEntity
 import com.khata.data.db.TransactionEntity
 import com.khata.data.prefs.UserSettings
 import com.khata.domain.categorizer.KhataCategories
 import com.khata.domain.quotes.InAppQuote
 import com.khata.domain.quotes.QuoteRepository
+import com.khata.notifications.NotificationHelper
 import com.khata.ui.theme.*
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.delay
@@ -58,7 +75,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    KhataTheme(settings.themeMode) {
+    KhataTheme(settings.themeMode, settings.dewSurface) {
         if (!settings.onboardingComplete) {
             OnboardingScreen(onFinish = viewModel::finishOnboarding)
         } else {
@@ -82,7 +99,7 @@ private fun OnboardingScreen(onFinish: (String, String, Boolean, Long) -> Unit) 
         Column {
             Text("KHATA", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             Spacer(Modifier.height(24.dp))
-            Text("Pehchaan. Money follows, my brother. Money follows.", fontFamily = FontFamily.Cursive, fontSize = 26.sp, lineHeight = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text("Your money, a little clearer.", fontFamily = CaveatFamily, fontSize = 26.sp, lineHeight = 34.sp, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(12.dp))
             Text("Every rupee, in its place.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
             Spacer(Modifier.height(36.dp))
@@ -116,7 +133,7 @@ private fun OnboardingScreen(onFinish: (String, String, Boolean, Long) -> Unit) 
                 else -> {
                     Text("Your money stays on your device.", style = MaterialTheme.typography.headlineSmall)
                     Spacer(Modifier.height(12.dp))
-                    Text("Khata works offline. Bank connection is optional; you can add transactions manually any time.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 22.sp)
+                    Text("Khata works offline. Add a manual bank account now; secure Account Aggregator sync requires an approved FIU partner.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 22.sp)
                 }
             }
         }
@@ -140,62 +157,119 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val categories by viewModel.categories.collectAsStateWithLifecycle()
     val queue by viewModel.reviewQueue.collectAsStateWithLifecycle()
+    val accounts by viewModel.accounts.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableStateOf("Home") }
     var showReview by rememberSaveable { mutableStateOf(false) }
     var showAdd by rememberSaveable { mutableStateOf(false) }
     var showSearch by rememberSaveable { mutableStateOf(false) }
     var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedTransaction by remember { mutableStateOf<TransactionEntity?>(null) }
-    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val dew = LocalDewSurface.current
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = {
-            if (!showReview && selectedCategory == null) {
-                FloatingActionButton(onClick = { showAdd = true }, containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary, shape = RoundedCornerShape(20.dp)) {
-                    Icon(Icons.Outlined.Add, contentDescription = "Add transaction")
-                }
-            }
-        },
-        bottomBar = {
-            if (!showReview && selectedCategory == null) {
-                NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp).clip(RoundedCornerShape(24.dp))) {
-                    listOf("Home", "Calendar", "Analysis", "Settings").forEach { item ->
-                        val icon = when (item) {
-                            "Home" -> Icons.Outlined.Home
-                            "Calendar" -> Icons.Outlined.CalendarMonth
-                            "Analysis" -> Icons.Outlined.BarChart
-                            else -> Icons.Outlined.Settings
-                        }
-                        NavigationBarItem(selected = tab == item, onClick = { tab = item }, icon = { Icon(icon, contentDescription = item) }, label = { Text(item) }, alwaysShowLabel = true)
+    Box(Modifier.fillMaxSize()) {
+        if (dew) DewBackdrop()
+        Scaffold(
+            containerColor = if (dew) Color.Transparent else MaterialTheme.colorScheme.background,
+            floatingActionButton = {
+                if (!showReview && selectedCategory == null) {
+                    FloatingActionButton(onClick = {
+                        if (settings.hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        showAdd = true
+                    }, containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary, shape = RoundedCornerShape(20.dp)) {
+                        Icon(Icons.Outlined.Add, contentDescription = "Add transaction")
                     }
                 }
+            },
+            bottomBar = {
+                if (!showReview && selectedCategory == null) KhataBottomBar(tab, shouldReduceMotion(settings.reduceMotion), settings.hapticsEnabled) { tab = it }
             }
-        }
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            when {
-                showReview -> ReviewScreen(queue, categories.map { it.id to it.name }, onBack = { showReview = false }, onCorrect = viewModel::correct, onTransfer = viewModel::markTransfer, onIgnore = viewModel::ignore)
-                selectedCategory != null -> CategoryDetailScreen(selectedCategory!!, transactions, onBack = { selectedCategory = null }, onTransaction = { selectedTransaction = it })
-                tab == "Home" -> HomeScreen(
-                    transactions = transactions, settings = settings, reviewCount = queue.size,
-                    onReview = { showReview = true }, onSearch = { showSearch = true },
-                    onCategory = { selectedCategory = it }, onTransaction = { selectedTransaction = it },
-                    onCompareMode = viewModel::compare
-                )
-                tab == "Calendar" -> CalendarScreen(transactions, onTransaction = { selectedTransaction = it })
-                tab == "Analysis" -> AnalysisScreen(transactions, categories.map { it.id to it.name }, onTransaction = { selectedTransaction = it }, onCategory = { selectedCategory = it })
-                else -> SettingsScreen(settings, viewModel, transactions, onClear = viewModel::clearAll)
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                when {
+                    showReview -> ReviewScreen(queue, categories.map { it.id to it.name }, onBack = { showReview = false }, onCorrect = viewModel::correct, onTransfer = viewModel::markTransfer, onIgnore = viewModel::ignore)
+                    selectedCategory != null -> CategoryDetailScreen(selectedCategory!!, transactions, onBack = { selectedCategory = null }, onTransaction = { selectedTransaction = it })
+                    tab == "Home" -> HomeScreen(
+                        transactions = transactions, settings = settings, reviewCount = queue.size,
+                        onReview = { showReview = true }, onSearch = { showSearch = true },
+                        onCategory = { selectedCategory = it }, onTransaction = { selectedTransaction = it },
+                        onCompareMode = viewModel::compare
+                    )
+                    tab == "Calendar" -> CalendarScreen(transactions, onTransaction = { selectedTransaction = it })
+                    tab == "Analysis" -> AnalysisScreen(transactions, categories.map { it.id to it.name }, onTransaction = { selectedTransaction = it }, onCategory = { selectedCategory = it })
+                    else -> SettingsScreen(settings, viewModel, transactions, accounts, onClear = viewModel::clearAll)
+                }
             }
         }
     }
-    if (showAdd) QuickAddDialog(onDismiss = { showAdd = false }, onSave = { merchant, amount, direction, date, note, category ->
-        viewModel.addTransaction(merchant, amount, direction, date, note, category)
+    if (showAdd) QuickAddDialog(accounts, onDismiss = { showAdd = false }, onSave = { merchant, amount, direction, date, note, category, accountId ->
+        if (settings.hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        viewModel.addTransaction(merchant, amount, direction, date, note, category, accountId)
         showAdd = false
     })
     if (showSearch) SearchOverlay(transactions, onClose = { showSearch = false }, onSelect = { selectedTransaction = it; showSearch = false })
     selectedTransaction?.let { txn ->
-        TransactionDetailDialog(txn, onDismiss = { selectedTransaction = null }, onCategory = { category -> viewModel.correct(txn, category); selectedTransaction = null }, onDelete = { viewModel.delete(txn); selectedTransaction = null })
+        val accountName = accounts.firstOrNull { it.id == txn.accountId }?.name ?: "Manual"
+        TransactionDetailDialog(txn, accountName, onDismiss = { selectedTransaction = null }, onCategory = { category -> viewModel.correct(txn, category); selectedTransaction = null }, onDelete = { viewModel.delete(txn); selectedTransaction = null })
+    }
+}
+
+@Composable
+private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabled: Boolean, onSelect: (String) -> Unit) {
+    val haptic = LocalHapticFeedback.current
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 5.dp).height(72.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = .96f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = RoundedCornerShape(28.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = .07f)),
+        shadowElevation = 8.dp
+    ) {
+        Row(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            listOf("Home", "Calendar", "Analysis", "Settings").forEach { item ->
+                val active = selected == item
+                val width by animateDpAsState(if (active) 112.dp else 48.dp, animationSpec = if (reduceMotion) snap() else spring(dampingRatio = .78f, stiffness = 420f), label = "nav-width-$item")
+                val icon = when (item) {
+                    "Home" -> Icons.Outlined.Home
+                    "Calendar" -> Icons.Outlined.CalendarMonth
+                    "Analysis" -> Icons.Outlined.BarChart
+                    else -> Icons.Outlined.Settings
+                }
+                Surface(
+                    onClick = {
+                        if (selected != item) {
+                            if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onSelect(item)
+                        }
+                    },
+                    modifier = Modifier.width(width).height(54.dp),
+                    color = if (active) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    contentColor = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    shape = RoundedCornerShape(27.dp)
+                ) {
+                    Row(Modifier.fillMaxSize().padding(horizontal = if (active) 14.dp else 0.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        Icon(icon, contentDescription = item, modifier = Modifier.size(21.dp))
+                        AnimatedVisibility(active) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Spacer(Modifier.width(8.dp))
+                                Text(item, maxLines = 1, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DewBackdrop() {
+    val dark = MaterialTheme.colorScheme.background == DarkBackground
+    val blurModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Modifier.blur(40.dp) else Modifier
+    Box(Modifier.fillMaxSize()) {
+        Box(Modifier.offset(x = (-70).dp, y = 80.dp).size(230.dp).background(if (dark) DarkTide.copy(alpha = .18f) else Tide.copy(alpha = .12f), CircleShape).then(blurModifier))
+        Box(Modifier.align(Alignment.TopEnd).offset(x = 90.dp, y = 260.dp).size(240.dp).background(if (dark) DarkSaffron.copy(alpha = .12f) else Saffron.copy(alpha = .12f), CircleShape).then(blurModifier))
+        Box(Modifier.align(Alignment.BottomCenter).offset(y = 100.dp).size(250.dp).background(if (dark) DarkEmber.copy(alpha = .12f) else Ember.copy(alpha = .10f), CircleShape).then(blurModifier))
     }
 }
 
@@ -205,6 +279,7 @@ private fun HomeScreen(
     onReview: () -> Unit, onSearch: () -> Unit, onCategory: (String) -> Unit,
     onTransaction: (TransactionEntity) -> Unit, onCompareMode: (Boolean) -> Unit
 ) {
+    val reduceMotion = shouldReduceMotion(settings.reduceMotion)
     val today = LocalDate.now()
     val monthStart = today.withDayOfMonth(1)
     val lastMonth = today.minusMonths(1)
@@ -231,7 +306,7 @@ private fun HomeScreen(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
-                Text(greeting, fontFamily = FontFamily.Cursive, fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
+                Text(greeting, fontFamily = CaveatFamily, fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
                 Text("@${settings.username.ifBlank { "there" }}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onSearch, modifier = Modifier.size(48.dp)) { Icon(Icons.Outlined.Search, contentDescription = "Search transactions") }
@@ -261,7 +336,7 @@ private fun HomeScreen(
                 currentSpend > previousSpend * 1.5 -> "${money(currentSpend - previousSpend)} more — way over last month"
                 else -> "${percentMore(currentSpend, previousSpend)}% more than last month"
             }
-            RingCard(currentSpend, fraction, ringColor, caption, budgetMode, monthName, lastDays)
+            RingCard(currentSpend, fraction, ringColor, caption, budgetMode, monthName, lastDays, reduceMotion)
         } else {
             Text("First month", modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 28.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("Add your first transaction to see your spending ring.", modifier = Modifier.align(Alignment.CenterHorizontally), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -298,8 +373,8 @@ private fun HomeScreen(
 }
 
 @Composable
-private fun RingCard(amount: Long, fraction: Float, color: Color, caption: String, budgetMode: Boolean, monthName: String, days: Int) {
-    val animated by animateFloatAsState(targetValue = fraction, animationSpec = tween(600), label = "ring")
+private fun RingCard(amount: Long, fraction: Float, color: Color, caption: String, budgetMode: Boolean, monthName: String, days: Int, reduceMotion: Boolean) {
+    val animated by animateFloatAsState(targetValue = fraction, animationSpec = if (reduceMotion) snap() else tween(720), label = "ring")
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
     Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(Modifier.size(236.dp), contentAlignment = Alignment.Center) {
@@ -313,7 +388,7 @@ private fun RingCard(amount: Long, fraction: Float, color: Color, caption: Strin
                 Text(if (budgetMode) "spent this month" else "this month", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Text(caption, fontFamily = FontFamily.Cursive, fontSize = 19.sp, color = color, modifier = Modifier.padding(top = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Text(caption, fontFamily = CaveatFamily, fontSize = 19.sp, color = color, modifier = Modifier.padding(top = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         if (!budgetMode && amount > 0) Text("vs same $days days last month", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -323,7 +398,7 @@ private fun QuoteBanner(quote: InAppQuote, onDismiss: () -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .65f), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
         Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 6.dp), verticalAlignment = Alignment.Top) {
             Column(Modifier.weight(1f)) {
-                Text(quote.text, fontFamily = FontFamily.Cursive, fontSize = 17.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(quote.text, fontFamily = CaveatFamily, fontSize = 17.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurface)
                 Text(quote.subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 3.dp))
             }
             IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Close, "Dismiss quote", modifier = Modifier.size(18.dp)) }
@@ -364,7 +439,7 @@ private fun ReviewScreen(queue: List<TransactionEntity>, categories: List<Pair<S
     Column(Modifier.fillMaxSize().padding(horizontal = 18.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, "Back") }; Text("Review queue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold) }
         if (queue.isEmpty()) {
-            Spacer(Modifier.weight(1f)); Text("All caught up", fontFamily = FontFamily.Cursive, fontSize = 30.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.align(Alignment.CenterHorizontally)); Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(1f)); Text("All caught up", fontFamily = CaveatFamily, fontSize = 30.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.align(Alignment.CenterHorizontally)); Spacer(Modifier.weight(1f))
         } else {
             val txn = queue.first()
             Text("1 / ${queue.size}", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
@@ -490,17 +565,32 @@ private fun YearHeatmap(transactions: List<TransactionEntity>) {
     val byDate = transactions.filter { it.date.startsWith(year.toString()) && (it.type == "EXPENSE" || it.type == "REFUND") }.groupBy { it.date }.mapValues { netSpend(it.value) }
     val max = byDate.values.maxOrNull()?.coerceAtLeast(1) ?: 1
     val start = LocalDate.of(year, 1, 1)
-    val cells = (0 until (if (start.dayOfWeek.value == 7) 0 else start.dayOfWeek.value)).map { "" } + (0 until (if (LocalDate.of(year, 1, 1).isLeapYear) 366 else 365)).map { start.plusDays(it.toLong()).toString() }
+    val leading = start.dayOfWeek.value % 7
+    val days = if (start.isLeapYear) 366 else 365
+    val dates: List<String?> = List(leading) { null } + (0 until days).map { start.plusDays(it.toLong()).toString() }
+    val padded = dates + List((7 - dates.size % 7) % 7) { null }
+    val weeks = padded.chunked(7)
     Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
-        cells.chunked(7).forEach { week ->
-            Row(horizontalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.padding(bottom = 3.dp)) {
-                week.forEach { date ->
-                    val amount = byDate[date] ?: 0L
-                    val intensity = amount.toFloat() / max
-                    val color = if (amount == 0L) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary.copy(alpha = .25f + .7f * intensity)
-                    Box(Modifier.size(9.dp).clip(RoundedCornerShape(2.dp)).background(color))
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            weeks.forEach { week ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    week.forEach { date ->
+                        if (date == null) Box(Modifier.size(10.dp)) else {
+                            val amount = byDate[date] ?: 0L
+                            val intensity = (amount.toFloat() / max).coerceIn(0f, 1f)
+                            val tint = if (amount == 0L) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary.copy(alpha = .22f + .72f * intensity)
+                            Box(Modifier.size(10.dp).clip(RoundedCornerShape(3.dp)).background(tint))
+                        }
+                    }
                 }
             }
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            Text("Less", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.width(5.dp))
+            listOf(.18f, .4f, .68f, .94f).forEach { alpha -> Box(Modifier.padding(horizontal = 2.dp).size(10.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))) }
+            Spacer(Modifier.width(5.dp))
+            Text("More", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -519,12 +609,19 @@ private fun CategoryDetailScreen(categoryId: String, transactions: List<Transact
 }
 
 @Composable
-private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, transactions: List<TransactionEntity>, onClear: () -> Unit) {
+private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, transactions: List<TransactionEntity>, accounts: List<AccountEntity>, onClear: () -> Unit) {
     val context = LocalContext.current
     var username by remember(settings.username) { mutableStateOf(settings.username) }
     var budget by remember(settings.monthlyBudgetPaise) { mutableStateOf(if (settings.monthlyBudgetPaise > 0) (settings.monthlyBudgetPaise / 100.0).toString() else "") }
     var clearConfirm by remember { mutableStateOf(false) }
+    var addAccount by remember { mutableStateOf(false) }
+    var showAaInfo by remember { mutableStateOf(false) }
+    var notificationsEnabled by remember { mutableStateOf(NotificationHelper.canNotify(context)) }
     var toastMessage by remember { mutableStateOf("") }
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        notificationsEnabled = granted && NotificationHelper.canNotify(context)
+        if (notificationsEnabled) NotificationHelper.showPermissionSuccess(context)
+    }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
         Text("Settings", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 14.dp, bottom = 20.dp))
         SectionTitle("Profile")
@@ -544,9 +641,37 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         Spacer(Modifier.height(12.dp)); SectionTitle("Budget")
         OutlinedTextField(budget, { budget = it.filter { c -> c.isDigit() || c == '.' } }, modifier = Modifier.fillMaxWidth(), label = { Text("Monthly limit") }, prefix = { Text("₹") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
         TextButton(onClick = { viewModel.budget(((budget.toDoubleOrNull() ?: 0.0) * 100).toLong()) }) { Text("Save budget") }
+        Spacer(Modifier.height(12.dp)); SectionTitle("Notifications")
+        Text("Khata can alert you when a recorded expense takes you over your monthly budget.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 20.sp)
+        Button(onClick = {
+            if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                notificationsEnabled = NotificationHelper.canNotify(context)
+                if (notificationsEnabled) NotificationHelper.showPermissionSuccess(context)
+            }
+        }, modifier = Modifier.padding(top = 8.dp)) {
+            Icon(if (notificationsEnabled) Icons.Outlined.NotificationsActive else Icons.Outlined.Notifications, null)
+            Spacer(Modifier.width(8.dp)); Text(if (notificationsEnabled) "Alerts enabled · send test" else "Enable budget alerts")
+        }
+        if (!notificationsEnabled) Text("You can turn alerts off any time in Android Settings.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Spacer(Modifier.height(12.dp)); SectionTitle("Accounts")
-        Text("Khata is fully usable offline. Account Aggregator sync is optional and not connected in this build.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 20.sp)
-        OutlinedButton(onClick = { toastMessage = "Bank sync is not configured. You can add transactions manually." }, modifier = Modifier.padding(top = 8.dp)) { Icon(Icons.Outlined.AccountBalance, null); Spacer(Modifier.width(8.dp)); Text("Add account") }
+        if (accounts.isEmpty()) Text("Loading accounts…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        accounts.forEach { account ->
+            val accountTransactions = transactions.filter { it.accountId == account.id }
+            val balance = account.openingBalancePaise + accountTransactions.sumOf { transaction -> if (transaction.direction == "CREDIT") transaction.amountPaise else -transaction.amountPaise }
+            Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(18.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Row(Modifier.padding(horizontal = 14.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondary.copy(alpha = .14f)), contentAlignment = Alignment.Center) { Icon(if (account.accountType == "BANK") Icons.Outlined.AccountBalance else Icons.Outlined.Wallet, null, tint = MaterialTheme.colorScheme.secondary) }
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) { Text(account.name, fontWeight = FontWeight.Medium); Text("${account.institution} · ${account.accountType.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp) }
+                    Text(money(balance), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
+                }
+            }
+        }
+        Button(onClick = { addAccount = true }, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.width(8.dp)); Text("Add a bank or cash account") }
+        OutlinedButton(onClick = { showAaInfo = true }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Outlined.Security, null); Spacer(Modifier.width(8.dp)); Text("About secure bank linking") }
+        Text("No bank password or full account number is requested.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         if (toastMessage.isNotBlank()) { Text(toastMessage, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)); TextButton(onClick = { toastMessage = "" }) { Text("Dismiss") } }
         Spacer(Modifier.height(16.dp)); SectionTitle("Data")
         OutlinedButton(onClick = {
@@ -564,31 +689,115 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))
     }
+    if (addAccount) AddAccountDialog(onDismiss = { addAccount = false }, onSave = { name, institution, type, balancePaise -> viewModel.addAccount(name, institution, type, balancePaise); addAccount = false })
+    if (showAaInfo) AlertDialog(onDismissRequest = { showAaInfo = false }, title = { Text("Secure bank linking") }, text = { Text("India’s Account Aggregator framework uses explicit consent and secure data exchange. A live connection requires a registered FIU partner, provider onboarding, and consent/callback services. Khata does not collect bank passwords; manual accounts are available now.") }, confirmButton = { TextButton(onClick = { showAaInfo = false }) { Text("Got it") } })
     if (clearConfirm) AlertDialog(onDismissRequest = { clearConfirm = false }, title = { Text("Clear all data?") }, text = { Text("This permanently deletes all transactions from this device. Settings and categories stay.") }, confirmButton = { TextButton(onClick = { onClear(); clearConfirm = false }) { Text("Delete", color = MaterialTheme.colorScheme.error) } }, dismissButton = { TextButton(onClick = { clearConfirm = false }) { Text("Cancel") } })
 }
 
 @Composable
-private fun QuickAddDialog(onDismiss: () -> Unit, onSave: (String, Long, String, LocalDate, String, String?) -> Unit) {
-    var merchant by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
-    var direction by remember { mutableStateOf("DEBIT") }
-    var date by remember { mutableStateOf(LocalDate.now()) }
-    var note by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("auto") }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Add transaction") }, text = {
-        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedTextField(amount, { amount = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Amount") }, prefix = { Text("₹") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.fillMaxWidth())
-            Row { FilterChip(direction == "DEBIT", { direction = "DEBIT" }, label = { Text("Expense") }); Spacer(Modifier.width(8.dp)); FilterChip(direction == "CREDIT", { direction = "CREDIT" }, label = { Text("Income") }) }
-            OutlinedTextField(merchant, { merchant = it }, label = { Text("Merchant / description") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            Text("Category", fontWeight = FontWeight.Medium)
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilterChip(category == "auto", { category = "auto" }, label = { Text("Auto") })
-                listOf("groceries", "dining", "transport", "utilities", "shopping", "health").forEach { id -> FilterChip(category == id, { category = id }, label = { Text(KhataCategories.names[id] ?: id) }) }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddAccountDialog(onDismiss: () -> Unit, onSave: (String, String, String, Long) -> Unit) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var institution by rememberSaveable { mutableStateOf("") }
+    var balance by rememberSaveable { mutableStateOf("") }
+    var type by rememberSaveable { mutableStateOf("BANK") }
+    val types = listOf("BANK" to "Bank", "CASH" to "Cash", "WALLET" to "Wallet")
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add an account") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(name, { name = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Account name") }, placeholder = { Text("e.g. Everyday savings") }, singleLine = true)
+                OutlinedTextField(institution, { institution = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Bank or institution") }, placeholder = { Text("Optional") }, singleLine = true)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    types.forEach { (key, label) -> FilterChip(selected = type == key, onClick = { type = key }, label = { Text(label) }) }
+                }
+                OutlinedTextField(balance, { balance = it.filter { c -> c.isDigit() || c == '.' } }, modifier = Modifier.fillMaxWidth(), label = { Text("Starting balance · optional") }, prefix = { Text("₹") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
+                Text("Khata stores this account locally. Never enter your bank password, PIN, OTP, or full account number.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, lineHeight = 17.sp)
             }
-            OutlinedTextField(note, { note = it }, label = { Text("Note (optional)") }, modifier = Modifier.fillMaxWidth())
-            Text("Date · $date", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }, confirmButton = { Button(enabled = merchant.isNotBlank() && (amount.toDoubleOrNull() ?: 0.0) > 0, onClick = { onSave(merchant, ((amount.toDoubleOrNull() ?: 0.0) * 100).toLong(), direction, date, note, category.takeUnless { it == "auto" }) }) { Text("Save") } }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } })
+        },
+        confirmButton = {
+            Button(enabled = name.isNotBlank(), onClick = {
+                onSave(name.trim(), institution.trim(), type, ((balance.toDoubleOrNull() ?: 0.0) * 100).toLong())
+            }) { Text("Add account") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+private fun QuickAddDialog(accounts: List<AccountEntity>, onDismiss: () -> Unit, onSave: (String, Long, String, LocalDate, String, String?, String) -> Unit) {
+    var merchant by rememberSaveable { mutableStateOf("") }
+    var amount by rememberSaveable { mutableStateOf("") }
+    var direction by rememberSaveable { mutableStateOf("DEBIT") }
+    var dateText by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
+    var note by rememberSaveable { mutableStateOf("") }
+    var category by rememberSaveable { mutableStateOf("auto") }
+    var showNote by rememberSaveable { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showAccounts by remember { mutableStateOf(false) }
+    var accountId by remember(accounts) { mutableStateOf(accounts.firstOrNull()?.id ?: "manual") }
+    val date = runCatching { LocalDate.parse(dateText) }.getOrDefault(LocalDate.now())
+    val account = accounts.firstOrNull { it.id == accountId }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add transaction") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                OutlinedTextField(amount, { amount = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("Amount") }, prefix = { Text("₹") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.fillMaxWidth())
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = direction == "DEBIT", onClick = { direction = "DEBIT" }, label = { Text("Expense") })
+                    FilterChip(selected = direction == "CREDIT", onClick = { direction = "CREDIT" }, label = { Text("Income") })
+                }
+                OutlinedTextField(merchant, { merchant = it }, label = { Text("What was it for?") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.weight(1f)) {
+                        OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Outlined.CalendarToday, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(date.format(DateTimeFormatter.ofPattern("d MMM")), maxLines = 1)
+                        }
+                    }
+                    Box(Modifier.weight(1.2f)) {
+                        OutlinedButton(onClick = { showAccounts = true }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Outlined.AccountBalanceWallet, null, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(account?.name ?: "Manual", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        DropdownMenu(expanded = showAccounts, onDismissRequest = { showAccounts = false }) {
+                            accounts.forEach { item -> DropdownMenuItem(text = { Text(item.name) }, onClick = { accountId = item.id; showAccounts = false }) }
+                        }
+                    }
+                }
+                Text("Category", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(selected = category == "auto", onClick = { category = "auto" }, label = { Text("Auto") })
+                    listOf("groceries", "dining", "transport", "utilities", "shopping", "health").forEach { id ->
+                        FilterChip(selected = category == id, onClick = { category = id }, label = { Text(KhataCategories.names[id] ?: id) })
+                    }
+                }
+                if (showNote) OutlinedTextField(note, { note = it }, label = { Text("Note (optional)") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                else TextButton(onClick = { showNote = true }) { Text("Add a note") }
+            }
+        },
+        confirmButton = {
+            Button(enabled = merchant.isNotBlank() && (amount.toDoubleOrNull() ?: 0.0) > 0, onClick = {
+                onSave(merchant.trim(), ((amount.toDoubleOrNull() ?: 0.0) * 100).toLong(), direction, date, note.trim(), category.takeUnless { it == "auto" }, accountId)
+            }) { Text("Save") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+    if (showDatePicker) {
+        val datePicker = rememberDatePickerState(initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = { TextButton(onClick = {
+                datePicker.selectedDateMillis?.let { millis ->
+                    val picked = java.time.Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+                    dateText = minOf(picked, LocalDate.now()).toString()
+                }
+                showDatePicker = false
+            }) { Text("Choose date") } },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } }
+        ) { DatePicker(state = datePicker) }
+    }
 }
 
 @Composable
@@ -607,7 +816,7 @@ private fun SearchOverlay(transactions: List<TransactionEntity>, onClose: () -> 
 }
 
 @Composable
-private fun TransactionDetailDialog(transaction: TransactionEntity, onDismiss: () -> Unit, onCategory: (String) -> Unit, onDelete: () -> Unit) {
+private fun TransactionDetailDialog(transaction: TransactionEntity, accountName: String, onDismiss: () -> Unit, onCategory: (String) -> Unit, onDelete: () -> Unit) {
     var showCategories by remember { mutableStateOf(false) }
     AlertDialog(onDismissRequest = onDismiss, title = { Text(transaction.rawText, maxLines = 1, overflow = TextOverflow.Ellipsis) }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -618,7 +827,7 @@ private fun TransactionDetailDialog(transaction: TransactionEntity, onDismiss: (
             if (showCategories) Column(Modifier.heightIn(max = 190.dp).verticalScroll(rememberScrollState())) {
                 KhataCategories.names.filterKeys { it !in listOf("uncategorized", "income", "investments", "fees") }.forEach { (id, name) -> TextButton(onClick = { onCategory(id) }) { Text(name) } }
             }
-            Text("Account · ${transaction.accountId}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+            Text("Account · $accountName", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
             Text("Original · ${transaction.rawText}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         }
     }, confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } }, dismissButton = { TextButton(onClick = onDelete) { Text("Delete", color = MaterialTheme.colorScheme.error) } })
@@ -665,6 +874,14 @@ private fun categoryAccent(id: String): Color = when (KhataCategories.colors[id]
     "brick" -> MaterialTheme.colorScheme.error
     "muted" -> MaterialTheme.colorScheme.onSurfaceVariant
     else -> MaterialTheme.colorScheme.primary
+}
+
+@Composable
+private fun shouldReduceMotion(mode: String): Boolean {
+    if (mode == "ON") return true
+    if (mode == "OFF") return false
+    val context = LocalContext.current
+    return runCatching { AndroidSettings.Global.getFloat(context.contentResolver, AndroidSettings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }.getOrDefault(false)
 }
 
 private fun money(paise: Long): String {

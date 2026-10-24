@@ -50,6 +50,18 @@ data class MerchantRuleEntity(
     val isUserCreated: Boolean = false
 )
 
+@Entity(tableName = "accounts")
+data class AccountEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val institution: String,
+    val accountType: String,
+    val openingBalancePaise: Long = 0L,
+    val isActive: Boolean = true,
+    val isLinkedViaAa: Boolean = false,
+    val createdAt: String
+)
+
 @Dao
 interface KhataDao {
     @Query("SELECT * FROM transactions ORDER BY date DESC, id DESC LIMIT 500")
@@ -72,6 +84,15 @@ interface KhataDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRule(rule: MerchantRuleEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAccount(account: AccountEntity)
+
+    @Query("SELECT * FROM accounts WHERE isActive = 1 ORDER BY createdAt, name")
+    fun observeAccounts(): Flow<List<AccountEntity>>
+
+    @Query("SELECT COUNT(*) FROM accounts")
+    suspend fun countAccounts(): Int
 
     @Query("UPDATE transactions SET categoryId = :category, source = 'USER', confidence = 1.0, isReviewed = 1, type = :type WHERE id = :id")
     suspend fun correctTransaction(id: String, category: String, type: String = "EXPENSE")
@@ -96,8 +117,8 @@ interface KhataDao {
 }
 
 @Database(
-    entities = [TransactionEntity::class, CategoryEntity::class, MerchantRuleEntity::class],
-    version = 1,
+    entities = [TransactionEntity::class, CategoryEntity::class, MerchantRuleEntity::class, AccountEntity::class],
+    version = 2,
     exportSchema = true
 )
 abstract class KhataDatabase : RoomDatabase() {

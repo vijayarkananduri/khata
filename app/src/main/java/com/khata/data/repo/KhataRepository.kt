@@ -1,5 +1,6 @@
 package com.khata.data.repo
 
+import com.khata.data.db.AccountEntity
 import com.khata.data.db.KhataDao
 import com.khata.data.db.MerchantRuleEntity
 import com.khata.data.db.TransactionEntity
@@ -16,24 +17,62 @@ class KhataRepository @Inject constructor(private val dao: KhataDao) {
     val transactions: Flow<List<TransactionEntity>> = dao.observeTransactions()
     val reviewQueue: Flow<List<TransactionEntity>> = dao.observeReviewQueue()
     val categories = dao.observeCategories()
+    val accounts: Flow<List<AccountEntity>> = dao.observeAccounts()
 
-    suspend fun seedCategories() {
+    suspend fun initialize() {
         for (category in KhataCategories.seedCategories()) dao.insertCategory(category)
+        ensureDefaultAccount()
     }
 
-    suspend fun addTransaction(merchant: String, amountPaise: Long, direction: String, date: LocalDate, note: String, chosenCategory: String? = null) {
+    private suspend fun ensureDefaultAccount() {
+        if (dao.countAccounts() == 0) {
+            dao.insertAccount(AccountEntity("manual", "Manual", "Manual", "CASH", createdAt = LocalDate.now().toString()))
+        }
+    }
+
+    suspend fun addAccount(name: String, institution: String, accountType: String, openingBalancePaise: Long) {
+        val safeName = name.trim().ifBlank { "My account" }
+        dao.insertAccount(
+            AccountEntity(
+                id = "acct-${UUID.randomUUID()}",
+                name = safeName,
+                institution = institution.trim().ifBlank { safeName },
+                accountType = accountType,
+                openingBalancePaise = openingBalancePaise.coerceAtLeast(0L),
+                createdAt = LocalDate.now().toString()
+            )
+        )
+    }
+
+    suspend fun addTransaction(
+        merchant: String,
+        amountPaise: Long,
+        direction: String,
+        date: LocalDate,
+        note: String,
+        chosenCategory: String? = null,
+        accountId: String = "manual"
+    ) {
         val normalized = Categorizer.normalize(merchant)
         val old = dao.transactionsBetween(date.toString(), date.toString())
-        if (old.any { it.normalizedMerchant == normalized && it.amountPaise == amountPaise && it.direction == direction && it.accountId == "manual" }) return
+        if (old.any { it.normalizedMerchant == normalized && it.amountPaise == amountPaise && it.direction == direction && it.accountId == accountId }) return
         val result = Categorizer.classify(merchant, direction, dao.getRules())
         val category = chosenCategory ?: result.categoryId
         dao.insertTransaction(
             TransactionEntity(
-                id = UUID.randomUUID().toString(), rawText = merchant, normalizedMerchant = normalized,
-                amountPaise = amountPaise, direction = direction, date = date.toString(), type = result.type,
-                categoryId = category, confidence = if (chosenCategory != null) 1f else result.confidence,
+                id = UUID.randomUUID().toString(),
+                rawText = merchant,
+                normalizedMerchant = normalized,
+                amountPaise = amountPaise,
+                direction = direction,
+                date = date.toString(),
+                accountId = accountId,
+                type = result.type,
+                categoryId = category,
+                confidence = if (chosenCategory != null) 1f else result.confidence,
                 source = if (chosenCategory != null) "USER" else result.source,
-                isReviewed = category != "uncategorized", note = note
+                isReviewed = category != "uncategorized",
+                note = note
             )
         )
         if (chosenCategory != null) ruleFor(normalized, chosenCategory)

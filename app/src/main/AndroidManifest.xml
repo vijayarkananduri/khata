@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:name=".KhataApplication"
-        android:allowBackup="true"
-        android:icon="@android:drawable/ic_menu_edit"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:label="Khata"
         android:supportsRtl="true"
         android:theme="@style/Theme.Khata">

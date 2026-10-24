@@ -1,14 +1,14 @@
 # Khata implementation status
 
-- [x] Native Android Kotlin + Jetpack Compose app shell, Ember & Ink theme, onboarding, and four-tab navigation.
-- [x] Offline Room transaction/category/rule storage and DataStore preferences.
-- [x] Deterministic merchant and keyword categorization, review queue, correction learning, and retroactive merchant categorization.
-- [x] Home spending comparison/budget ring, categories, recent transactions, month-to-date comparison, quote banner, and search.
-- [x] Calendar day heatmap, yearly activity heatmap, category analysis, top merchants, and transaction detail actions.
-- [x] Settings for profile, five languages/script toggle, theme, surface, motion, haptics, budget, CSV sharing/export, and clear-data confirmation.
-- [x] Complete supplied five-language `quotes.json` and trigger-specific quote lookup.
-- [x] GitHub Actions debug APK build, unit tests, and 14-day artifact upload.
-- [ ] Connect Account Aggregator provider SDK and consent/sync workflow; keep this optional.
-- [ ] Implement CSV import and full custom-category/merchant-rule management screens.
-- [ ] Add Caveat and Google Sans font assets and apply exact type scale; currently uses Android sans/cursive fallbacks.
-- [ ] Add release signing and verify a signed release package after user-supplied signing configuration.
+- [x] Native Kotlin + Jetpack Compose app, Ember & Ink design system, onboarding, and four-tab navigation.
+- [x] Offline Room transactions, categories, merchant rules, and manual bank/cash/wallet accounts; v1-to-v2 data migration preserves existing transactions.
+- [x] Quick Add with category, account, optional note, and a date picker supporting today and past dates.
+- [x] Deterministic categorization, review queue, correction learning, duplicate prevention, and transaction detail actions.
+- [x] Home spending/budget comparison, category summary, recent activity, search, calendar, year heatmap, and analysis.
+- [x] Bundled Google Sans and Caveat fonts with SIL Open Font License copies; custom adaptive wallet launcher icon.
+- [x] Animated capsule bottom navigation, optional Dew frosted ambient surfaces, haptic feedback, and reduced-motion behavior.
+- [x] User-triggered Android notification permission and budget-overrun notification; denied permission degrades without blocking finance tracking.
+- [x] CSV export, quote catalog, local-only storage, disabled cloud backup, and GitHub Actions unit-test/APK workflow.
+- [ ] Live Account Aggregator sync. This requires an eligible FIU/provider partnership, onboarding, server-side consent callbacks, and provider configuration; the app does not simulate a live link.
+- [ ] CSV import and full custom-category/merchant-rule management screens.
+- [ ] User-owned production signing key and a Play-ready signed release build.
