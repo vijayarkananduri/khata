@@ -32,11 +32,12 @@ data class UserSettings(
     val hapticsEnabled: Boolean = true,
     val onboardingComplete: Boolean = false,
     val monthlyBudgetPaise: Long = 0L,
-    val compareMode: Boolean = true
+    val compareMode: Boolean = true,
+    val nudgesEnabled: Boolean = true
 )
 
 @Singleton
-class KhataPreferences @Inject constructor(private val store: DataStore<Preferences>) {
+class KhataPreferences @Inject constructor(private val store: DataStore<Preferences>, @ApplicationContext private val context: Context) {
     private object Keys {
         val username = stringPreferencesKey("username")
         val language = stringPreferencesKey("language")
@@ -48,6 +49,7 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
         val onboarding = booleanPreferencesKey("onboarding_complete")
         val budget = longPreferencesKey("monthly_budget_paise")
         val compare = booleanPreferencesKey("compare_mode")
+        val nudges = booleanPreferencesKey("nudges_enabled")
     }
 
     val settings: Flow<UserSettings> = store.data.catch { error ->
@@ -58,7 +60,8 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
             romanScript = p[Keys.roman] ?: false, themeMode = p[Keys.theme] ?: "SYSTEM",
             dewSurface = p[Keys.dew] ?: false, reduceMotion = p[Keys.motion] ?: "FOLLOW_SYSTEM",
             hapticsEnabled = p[Keys.haptics] ?: true, onboardingComplete = p[Keys.onboarding] ?: false,
-            monthlyBudgetPaise = p[Keys.budget] ?: 0L, compareMode = p[Keys.compare] ?: true
+            monthlyBudgetPaise = p[Keys.budget] ?: 0L, compareMode = p[Keys.compare] ?: true,
+            nudgesEnabled = p[Keys.nudges] ?: true
         )
     }
 
@@ -81,6 +84,10 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
     suspend fun setHaptics(value: Boolean) = store.edit { it[Keys.haptics] = value }
     suspend fun setBudget(value: Long) = store.edit { it[Keys.budget] = value }
     suspend fun setCompare(value: Boolean) = store.edit { it[Keys.compare] = value }
+    suspend fun setNudges(value: Boolean) {
+        store.edit { it[Keys.nudges] = value }
+        context.getSharedPreferences("khata_nudge_worker", Context.MODE_PRIVATE).edit().putBoolean("enabled", value).apply()
+    }
 }
 
 @Module

@@ -2,6 +2,10 @@ package com.khata
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.ViewModel
@@ -24,7 +28,12 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltAndroidApp
-class KhataApplication : android.app.Application()
+class KhataApplication : android.app.Application() {
+    override fun onCreate() {
+        super.onCreate()
+        com.khata.notifications.RestockNudgeWorker.schedule(this)
+    }
+}
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -83,4 +92,5 @@ class KhataViewModel @Inject constructor(
     fun haptics(value: Boolean) = viewModelScope.launch { preferences.setHaptics(value) }
     fun budget(value: Long) = viewModelScope.launch { preferences.setBudget(value) }
     fun compare(value: Boolean) = viewModelScope.launch { preferences.setCompare(value) }
+    fun nudges(value: Boolean) = viewModelScope.launch { preferences.setNudges(value) }
 }

@@ -13,13 +13,13 @@ import com.khata.R
 
 object NotificationHelper {
     private const val CHANNEL_ID = "khata_budget"
-    private const val CHANNEL_NAME = "Budget alerts"
+    private const val CHANNEL_NAME = "Khata reminders"
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "User-requested spending and budget alerts from Khata"
+                description = "Budget and opt-in restock reminders from Khata"
             })
         }
     }
@@ -31,6 +31,11 @@ object NotificationHelper {
 
     fun showBudgetExceeded(context: Context, spentPaise: Long, budgetPaise: Long) {
         show(context, 1001, "Monthly budget reached", "You've spent ₹${format(spentPaise)} against your ₹${format(budgetPaise)} budget.")
+    }
+
+    fun showRestockNudge(context: Context, item: String, category: String, intervalDays: Long, id: Int) {
+        val label = when (category) { "groceries" -> "groceries"; "fuel" -> "fuel"; "health" -> "essentials"; else -> "supplies" }
+        show(context, 2000 + kotlin.math.abs(id % 100000), "Time to check $item?", "Based on your usual $intervalDays-day restock rhythm, you may be running low. Check your $label before buying.")
     }
 
     fun showPermissionSuccess(context: Context) {

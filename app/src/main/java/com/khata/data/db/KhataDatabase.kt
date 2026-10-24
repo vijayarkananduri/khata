@@ -112,6 +112,9 @@ interface KhataDao {
     @Query("SELECT * FROM categories ORDER BY sortOrder")
     fun observeCategories(): Flow<List<CategoryEntity>>
 
+    @Query("SELECT * FROM transactions WHERE type = 'EXPENSE' AND direction = 'DEBIT' AND categoryId IN ('groceries', 'fuel', 'health', 'pet') ORDER BY date DESC LIMIT 500")
+    suspend fun nudgePurchases(): List<TransactionEntity>
+
     @Query("SELECT * FROM transactions WHERE date BETWEEN :from AND :to ORDER BY date DESC")
     suspend fun transactionsBetween(from: String, to: String): List<TransactionEntity>
 }

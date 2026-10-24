@@ -3,6 +3,9 @@ package com.khata
 import android.Manifest
 import android.content.Intent
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.Settings as AndroidSettings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -63,6 +66,7 @@ import com.khata.domain.categorizer.KhataCategories
 import com.khata.domain.quotes.InAppQuote
 import com.khata.domain.quotes.QuoteRepository
 import com.khata.notifications.NotificationHelper
+import com.khata.notifications.NudgeCadence
 import com.khata.ui.theme.*
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -76,10 +80,18 @@ import kotlinx.coroutines.delay
 fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     KhataTheme(settings.themeMode, settings.dewSurface) {
-        if (!settings.onboardingComplete) {
-            OnboardingScreen(onFinish = viewModel::finishOnboarding)
-        } else {
-            MainShell(viewModel, settings)
+        var splash by remember { mutableStateOf(true) }
+        LaunchedEffect(Unit) { delay(1500); splash = false }
+        Box(Modifier.fillMaxSize()) {
+            if (!settings.onboardingComplete) OnboardingScreen(onFinish = viewModel::finishOnboarding) else MainShell(viewModel, settings)
+            if (splash) {
+                val quote = rememberQuoteRepo().splashText(settings.language, settings.romanScript)
+                Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Text("KHATA", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+                    Spacer(Modifier.height(28.dp)); Text(quote, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
+                    Spacer(Modifier.height(10.dp)); Text("Your money, a little clearer.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
     }
 }
@@ -133,7 +145,7 @@ private fun OnboardingScreen(onFinish: (String, String, Boolean, Long) -> Unit) 
                 else -> {
                     Text("Your money stays on your device.", style = MaterialTheme.typography.headlineSmall)
                     Spacer(Modifier.height(12.dp))
-                    Text("Khata works offline. Add a manual bank account now; secure Account Aggregator sync requires an approved FIU partner.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 22.sp)
+                    Text("Khata works offline, with clear records and no bank credentials.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 22.sp)
                 }
             }
         }
@@ -164,7 +176,7 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
     var showSearch by rememberSaveable { mutableStateOf(false) }
     var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedTransaction by remember { mutableStateOf<TransactionEntity?>(null) }
-    val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
     val dew = LocalDewSurface.current
 
     Box(Modifier.fillMaxSize()) {
@@ -174,7 +186,7 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
             floatingActionButton = {
                 if (!showReview && selectedCategory == null) {
                     FloatingActionButton(onClick = {
-                        if (settings.hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        if (settings.hapticsEnabled) performKhataHaptic(context)
                         showAdd = true
                     }, containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary, shape = RoundedCornerShape(20.dp)) {
                         Icon(Icons.Outlined.Add, contentDescription = "Add transaction")
@@ -203,7 +215,7 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
         }
     }
     if (showAdd) QuickAddDialog(accounts, onDismiss = { showAdd = false }, onSave = { merchant, amount, direction, date, note, category, accountId ->
-        if (settings.hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        if (settings.hapticsEnabled) performKhataHaptic(context)
         viewModel.addTransaction(merchant, amount, direction, date, note, category, accountId)
         showAdd = false
     })
@@ -216,10 +228,11 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
 
 @Composable
 private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabled: Boolean, onSelect: (String) -> Unit) {
-    val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
+    val dew = LocalDewSurface.current
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 5.dp).height(72.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = .96f),
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 8.dp).height(68.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = if (dew) 0f else .96f),
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(28.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = .07f)),
@@ -238,7 +251,7 @@ private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabl
                 Surface(
                     onClick = {
                         if (selected != item) {
-                            if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            if (hapticsEnabled) performKhataHaptic(context)
                             onSelect(item)
                         }
                     },
@@ -297,9 +310,9 @@ private fun HomeScreen(
         previousSpend > 0 && currentSpend < previousSpend * 0.95 -> "ON_TRACK"
         else -> ""
     }
-    val quote = remember(settings.language, settings.romanScript, trigger) { if (trigger.isNotEmpty()) quoteRepo.forTrigger(settings.language, trigger, settings.romanScript) else null }
+    val quote = remember(settings.language, settings.romanScript, trigger, today.dayOfYear) { quoteRepo.forTrigger(settings.language, trigger.ifBlank { "DAILY_NOTE" }, settings.romanScript) }
     var quoteVisible by remember(quote?.text) { mutableStateOf(quote != null) }
-    LaunchedEffect(quote?.text) { if (quote != null) { quoteVisible = true; delay(8_000); quoteVisible = false } }
+    LaunchedEffect(quote?.text) { quoteVisible = quote != null }
     val hour = today.let { java.time.LocalTime.now().hour }
     val greeting = when (hour) { in 5..11 -> "Good morning,"; in 12..16 -> "Good afternoon,"; in 17..20 -> "Good evening,"; else -> "Good night," }
 
@@ -348,6 +361,18 @@ private fun HomeScreen(
                     Icon(Icons.Outlined.WarningAmber, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
                     Spacer(Modifier.width(8.dp)); Text("$reviewCount to review", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
                     Spacer(Modifier.weight(1f)); Icon(Icons.Outlined.ChevronRight, contentDescription = "Open review queue")
+                }
+            }
+        }
+        if (settings.nudgesEnabled) {
+            val dueNudge = NudgeCadence.due(transactions, today).firstOrNull()
+            dueNudge?.let { nudge ->
+                Spacer(Modifier.height(12.dp))
+                Surface(color = MaterialTheme.colorScheme.secondary.copy(alpha = if (dew) .05f else .14f), shape = RoundedCornerShape(18.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = .24f))) {
+                    Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.NotificationsActive, null, tint = MaterialTheme.colorScheme.secondary); Spacer(Modifier.width(10.dp))
+                        Column { Text("A little heads-up", fontWeight = FontWeight.SemiBold); Text("${nudge.item}: based on your usual ${nudge.intervalDays}-day rhythm, you may be running low. Check before you buy.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp) }
+                    }
                 }
             }
         }
@@ -615,7 +640,6 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
     var budget by remember(settings.monthlyBudgetPaise) { mutableStateOf(if (settings.monthlyBudgetPaise > 0) (settings.monthlyBudgetPaise / 100.0).toString() else "") }
     var clearConfirm by remember { mutableStateOf(false) }
     var addAccount by remember { mutableStateOf(false) }
-    var showAaInfo by remember { mutableStateOf(false) }
     var notificationsEnabled by remember { mutableStateOf(NotificationHelper.canNotify(context)) }
     var toastMessage by remember { mutableStateOf("") }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -635,9 +659,11 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         Spacer(Modifier.height(12.dp)); SectionTitle("Appearance")
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Dew surface", Modifier.weight(1f)); Switch(settings.dewSurface, { viewModel.dew(it) }) }
-        Text("Frosted cards are opt-in; Solid is the default.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        Text("Dew uses clear, translucent glass; turn it off for solid surfaces.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Reduce motion", Modifier.weight(1f)); listOf("FOLLOW_SYSTEM", "ON", "OFF").forEach { value -> FilterChip(selected = settings.reduceMotion == value, onClick = { viewModel.motion(value) }, label = { Text(when (value) { "FOLLOW_SYSTEM" -> "Auto"; else -> value.lowercase().replaceFirstChar { it.uppercase() } }) }) } }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Haptics", Modifier.weight(1f)); Switch(settings.hapticsEnabled, { viewModel.haptics(it) }) }
+        Spacer(Modifier.height(10.dp)); SectionTitle("Smart nudges")
+        Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("Restock reminders"); Text("Learns your grocery, fuel and essentials rhythm locally. Allow notifications below for background alerts.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp) }; Switch(settings.nudgesEnabled, { viewModel.nudges(it) }) }
         Spacer(Modifier.height(12.dp)); SectionTitle("Budget")
         OutlinedTextField(budget, { budget = it.filter { c -> c.isDigit() || c == '.' } }, modifier = Modifier.fillMaxWidth(), label = { Text("Monthly limit") }, prefix = { Text("₹") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
         TextButton(onClick = { viewModel.budget(((budget.toDoubleOrNull() ?: 0.0) * 100).toLong()) }) { Text("Save budget") }
@@ -670,8 +696,6 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
             }
         }
         Button(onClick = { addAccount = true }, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.width(8.dp)); Text("Add a bank or cash account") }
-        OutlinedButton(onClick = { showAaInfo = true }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Outlined.Security, null); Spacer(Modifier.width(8.dp)); Text("About secure bank linking") }
-        Text("No bank password or full account number is requested.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         if (toastMessage.isNotBlank()) { Text(toastMessage, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)); TextButton(onClick = { toastMessage = "" }) { Text("Dismiss") } }
         Spacer(Modifier.height(16.dp)); SectionTitle("Data")
         OutlinedButton(onClick = {
@@ -684,13 +708,12 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }, modifier = Modifier.fillMaxWidth()) { Text("Export CSV · ${transactions.size} transactions") }
         OutlinedButton(onClick = { toastMessage = "CSV import is planned; your local data has not changed." }, modifier = Modifier.fillMaxWidth()) { Text("Import CSV") }
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
-        Text("Khata 1.0.0 · Every rupee, in its place.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Khata 1.1.0 · Every rupee, in its place.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Your transaction data stays on this device.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))
     }
     if (addAccount) AddAccountDialog(onDismiss = { addAccount = false }, onSave = { name, institution, type, balancePaise -> viewModel.addAccount(name, institution, type, balancePaise); addAccount = false })
-    if (showAaInfo) AlertDialog(onDismissRequest = { showAaInfo = false }, title = { Text("Secure bank linking") }, text = { Text("India’s Account Aggregator framework uses explicit consent and secure data exchange. A live connection requires a registered FIU partner, provider onboarding, and consent/callback services. Khata does not collect bank passwords; manual accounts are available now.") }, confirmButton = { TextButton(onClick = { showAaInfo = false }) { Text("Got it") } })
     if (clearConfirm) AlertDialog(onDismissRequest = { clearConfirm = false }, title = { Text("Clear all data?") }, text = { Text("This permanently deletes all transactions from this device. Settings and categories stay.") }, confirmButton = { TextButton(onClick = { onClear(); clearConfirm = false }) { Text("Delete", color = MaterialTheme.colorScheme.error) } }, dismissButton = { TextButton(onClick = { clearConfirm = false }) { Text("Cancel") } })
 }
 
@@ -889,6 +912,15 @@ private fun shouldReduceMotion(mode: String): Boolean {
     if (mode == "OFF") return false
     val context = LocalContext.current
     return runCatching { AndroidSettings.Global.getFloat(context.contentResolver, AndroidSettings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }.getOrDefault(false)
+}
+
+@Suppress("DEPRECATION")
+private fun performKhataHaptic(context: android.content.Context) {
+    runCatching {
+        if (android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) == 0) return
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) (context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator else (context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as Vibrator)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)) else vibrator.vibrate(18L)
+    }
 }
 
 private fun money(paise: Long): String {

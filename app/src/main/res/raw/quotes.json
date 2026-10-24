@@ -1,21 +1,203 @@
 {
   "version": 1,
-  "splash": {"text": "Pehchaan. Money follows, my brother. Money follows.", "note": "Always English, hardcoded. Never localized."},
+  "splash": {
+    "text": "A calmer money day starts with one small choice."
+  },
   "languages": {
-    "hi": {"name":"हिन्दी","nameRoman":"Hindi","defaultScript":"ASK","quotes":[
-      {"id":"hi_money_follows","native":"पहचान। मनी फॉलोज, भाई, मनी फॉलोज।","roman":"Pehchaan. Money follows, bhai, money follows.","subtitle":"Recognition first. Money follows, brother.","trigger":"HOME_WELCOME"},
-      {"id":"hi_paisa_kheechta","native":"पैसा, पैसे को खींचता है।","roman":"Paisa, paise ko kheechta hai.","subtitle":"Money attracts money.","trigger":"FIRST_INVESTMENT"}]},
-    "te": {"name":"తెలుగు","nameRoman":"Telugu","defaultScript":"NATIVE","quotes":[
-      {"id":"te_dabbulu_urike","native":"డబ్బులు ఎవరికీ ఊరికే రావు.","roman":"Dabbulu evarikī ūrikē rāvu.","subtitle":"Money doesn't come for free.","trigger":"OVERSPEND"},
-      {"id":"te_lekkalu_matladakudadu","native":"మనం బాగున్నపుడు లెక్కలు మాట్లాడకూడదు, కష్టాల్లో ఉన్నప్పుడు విలువలు మాట్లాడకూడదు.","roman":"Manam bagunapudu lekkalu matladakudadu, kastalo unnapudu viluvalu matladakudadu.","subtitle":"When we are well off, we shouldn't talk about calculations; when in trouble, we shouldn't talk about values.","trigger":"BUDGET_SETUP"}]},
-    "ta": {"name":"தமிழ்","nameRoman":"Tamil","defaultScript":"NATIVE","quotes":[
-      {"id":"ta_kaiyil_konjam","native":"கையில கொஞ்சம் காசு இருந்தா...","roman":"Kaiyil konjam kasu iruntha...","subtitle":"If you have a little money in your hands, you are its boss. If you have money up to your neck, it becomes your boss.","trigger":"BUDGET_SETUP"},
-      {"id":"ta_ellam_panam","native":"எல்லாம் பணம் தான்.","roman":"Ellam panam thaan.","subtitle":"Everything is money.","trigger":"OVERSPEND"}]},
-    "ml": {"name":"മലയാളം","nameRoman":"Malayalam","defaultScript":"NATIVE","quotes":[
-      {"id":"ml_nee_po_mone","native":"നീ പോ മോനെ ദിനേശാ.","roman":"Nee po mone Dinesha.","subtitle":"Back off, Dinesha. (A playful dismissal.)","trigger":"UNDER_BUDGET_NOTIFICATION"},
-      {"id":"ml_panam_maram","native":"എന്റെ കയ്യിൽ പണം കായ്ക്കണ മരം ഒന്നുമില്ല.","roman":"Ente kayyil panam kaykkan maram onnumilla.","subtitle":"I don't have a money tree in my hand.","trigger":"EMPTY_STATE"}]},
-    "kn": {"name":"ಕನ್ನಡ","nameRoman":"Kannada","defaultScript":"NATIVE","quotes":[
-      {"id":"kn_ella_sigatte","native":"ಎಲ್ಲ ಸಿಗತ್ತೆ. ಎಲ್ಲ. ನಿಮಗೆ ಬೇಕಾಗಿರುವುದು ಹಣ ಮಾತ್ರ.","roman":"Ella sigatte. Ella. Nimagē bēkāgiruvudu haṇa mātra.","subtitle":"You'll get everything. Everything. You just need money.","trigger":"MILESTONE"},
-      {"id":"kn_bank_balance","native":"ಬ್ಯಾಂಕ್ ಬ್ಯಾಲೆನ್ಸ್ ನೋಡಿದ್ರೆ...","roman":"Bank balance nodidre...","subtitle":"If you looked at your bank balance...","trigger":"OVERSPEND"}]}
+    "hi": {
+      "name": "हिन्दी",
+      "nameRoman": "Hindi",
+      "defaultScript": "ASK",
+      "quotes": [
+        {
+          "id": "hi_money_follows",
+          "native": "पहचान। मनी फॉलोज, भाई, मनी फॉलोज।",
+          "roman": "Pehchaan. Money follows, bhai, money follows.",
+          "subtitle": "Recognition first. Money follows, brother.",
+          "trigger": "HOME_WELCOME"
+        },
+        {
+          "id": "hi_paisa_kheechta",
+          "native": "पैसा, पैसे को खींचता है।",
+          "roman": "Paisa, paise ko kheechta hai.",
+          "subtitle": "Money attracts money.",
+          "trigger": "FIRST_INVESTMENT"
+        },
+        {
+          "id": "hi_daily_note",
+          "native": "छोटे फैसले मिलकर बड़ा सुकून देते हैं।",
+          "roman": "Chhote faisle milkar bada sukoon dete hain.",
+          "subtitle": "A small mindful choice today makes tomorrow easier.",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_steady",
+          "native": "छोटे फैसले मिलकर बड़ा सुकून देते हैं।",
+          "roman": "Chhote faisle milkar bada sukoon dete hain.",
+          "subtitle": "Steady choices are worth noticing.",
+          "trigger": "ON_TRACK"
+        }
+      ],
+      "splash": {
+        "native": "हर रुपया एक छोटी कहानी कहता है।",
+        "roman": "Har rupaya ek chhoti kahani kehta hai."
+      }
+    },
+    "te": {
+      "name": "తెలుగు",
+      "nameRoman": "Telugu",
+      "defaultScript": "NATIVE",
+      "quotes": [
+        {
+          "id": "te_dabbulu_urike",
+          "native": "డబ్బులు ఎవరికీ ఊరికే రావు.",
+          "roman": "Dabbulu evarikī ūrikē rāvu.",
+          "subtitle": "Money doesn't come for free.",
+          "trigger": "OVERSPEND"
+        },
+        {
+          "id": "te_lekkalu_matladakudadu",
+          "native": "మనం బాగున్నపుడు లెక్కలు మాట్లాడకూడదు, కష్టాల్లో ఉన్నప్పుడు విలువలు మాట్లాడకూడదు.",
+          "roman": "Manam bagunapudu lekkalu matladakudadu, kastalo unnapudu viluvalu matladakudadu.",
+          "subtitle": "When we are well off, we shouldn't talk about calculations; when in trouble, we shouldn't talk about values.",
+          "trigger": "BUDGET_SETUP"
+        },
+        {
+          "id": "te_daily_note",
+          "native": "చిన్న నిర్ణయాలే మనసుకు పెద్ద నెమ్మదినిస్తాయి.",
+          "roman": "Chinna nirnayaale manasuku pedda nemmadinistaayi.",
+          "subtitle": "A small mindful choice today makes tomorrow easier.",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_steady",
+          "native": "చిన్న నిర్ణయాలే మనసుకు పెద్ద నెమ్మదినిస్తాయి.",
+          "roman": "Chinna nirnayaale manasuku pedda nemmadinistaayi.",
+          "subtitle": "Steady choices are worth noticing.",
+          "trigger": "ON_TRACK"
+        }
+      ],
+      "splash": {
+        "native": "ప్రతి రూపాయి ఒక చిన్న కథ చెబుతుంది.",
+        "roman": "Prathi rupayi oka chinna katha chebutundi."
+      }
+    },
+    "ta": {
+      "name": "தமிழ்",
+      "nameRoman": "Tamil",
+      "defaultScript": "NATIVE",
+      "quotes": [
+        {
+          "id": "ta_kaiyil_konjam",
+          "native": "கையில கொஞ்சம் காசு இருந்தா...",
+          "roman": "Kaiyil konjam kasu iruntha...",
+          "subtitle": "If you have a little money in your hands, you are its boss. If you have money up to your neck, it becomes your boss.",
+          "trigger": "BUDGET_SETUP"
+        },
+        {
+          "id": "ta_ellam_panam",
+          "native": "எல்லாம் பணம் தான்.",
+          "roman": "Ellam panam thaan.",
+          "subtitle": "Everything is money.",
+          "trigger": "OVERSPEND"
+        },
+        {
+          "id": "ta_daily_note",
+          "native": "சிறிய முடிவுகள் சேர்ந்து நிம்மதியைத் தரும்.",
+          "roman": "Siriya mudivugal serndhu nimmadhiyai tharum.",
+          "subtitle": "A small mindful choice today makes tomorrow easier.",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_steady",
+          "native": "சிறிய முடிவுகள் சேர்ந்து நிம்மதியைத் தரும்.",
+          "roman": "Siriya mudivugal serndhu nimmadhiyai tharum.",
+          "subtitle": "Steady choices are worth noticing.",
+          "trigger": "ON_TRACK"
+        }
+      ],
+      "splash": {
+        "native": "ஒவ்வொரு ரூபாயும் ஒரு சிறு கதையைச் சொல்கிறது.",
+        "roman": "Ovvoru roopaayum oru siru kathaiyai solgiradhu."
+      }
+    },
+    "ml": {
+      "name": "മലയാളം",
+      "nameRoman": "Malayalam",
+      "defaultScript": "NATIVE",
+      "quotes": [
+        {
+          "id": "ml_nee_po_mone",
+          "native": "നീ പോ മോനെ ദിനേശാ.",
+          "roman": "Nee po mone Dinesha.",
+          "subtitle": "Back off, Dinesha. (A playful dismissal.)",
+          "trigger": "UNDER_BUDGET_NOTIFICATION"
+        },
+        {
+          "id": "ml_panam_maram",
+          "native": "എന്റെ കയ്യിൽ പണം കായ്ക്കണ മരം ഒന്നുമില്ല.",
+          "roman": "Ente kayyil panam kaykkan maram onnumilla.",
+          "subtitle": "I don't have a money tree in my hand.",
+          "trigger": "EMPTY_STATE"
+        },
+        {
+          "id": "ml_daily_note",
+          "native": "ചെറിയ തീരുമാനങ്ങൾ വലിയ ആശ്വാസമാകും.",
+          "roman": "Cheriya theerumanangal valiya aashwasamaakum.",
+          "subtitle": "A small mindful choice today makes tomorrow easier.",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_steady",
+          "native": "ചെറിയ തീരുമാനങ്ങൾ വലിയ ആശ്വാസമാകും.",
+          "roman": "Cheriya theerumanangal valiya aashwasamaakum.",
+          "subtitle": "Steady choices are worth noticing.",
+          "trigger": "ON_TRACK"
+        }
+      ],
+      "splash": {
+        "native": "ഓരോ രൂപയ്ക്കും ഒരു ചെറിയ കഥയുണ്ട്.",
+        "roman": "Oro roopaykkum oru cheriya kathayundu."
+      }
+    },
+    "kn": {
+      "name": "ಕನ್ನಡ",
+      "nameRoman": "Kannada",
+      "defaultScript": "NATIVE",
+      "quotes": [
+        {
+          "id": "kn_ella_sigatte",
+          "native": "ಎಲ್ಲ ಸಿಗತ್ತೆ. ಎಲ್ಲ. ನಿಮಗೆ ಬೇಕಾಗಿರುವುದು ಹಣ ಮಾತ್ರ.",
+          "roman": "Ella sigatte. Ella. Nimagē bēkāgiruvudu haṇa mātra.",
+          "subtitle": "You'll get everything. Everything. You just need money.",
+          "trigger": "MILESTONE"
+        },
+        {
+          "id": "kn_bank_balance",
+          "native": "ಬ್ಯಾಂಕ್ ಬ್ಯಾಲೆನ್ಸ್ ನೋಡಿದ್ರೆ...",
+          "roman": "Bank balance nodidre...",
+          "subtitle": "If you looked at your bank balance...",
+          "trigger": "OVERSPEND"
+        },
+        {
+          "id": "kn_daily_note",
+          "native": "ಚಿಕ್ಕ ನಿರ್ಧಾರಗಳು ದೊಡ್ಡ ನೆಮ್ಮದಿ ತರುತ್ತವೆ.",
+          "roman": "Chikka nirdhaaragalu dodda nemmadi taruttave.",
+          "subtitle": "A small mindful choice today makes tomorrow easier.",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_steady",
+          "native": "ಚಿಕ್ಕ ನಿರ್ಧಾರಗಳು ದೊಡ್ಡ ನೆಮ್ಮದಿ ತರುತ್ತವೆ.",
+          "roman": "Chikka nirdhaaragalu dodda nemmadi taruttave.",
+          "subtitle": "Steady choices are worth noticing.",
+          "trigger": "ON_TRACK"
+        }
+      ],
+      "splash": {
+        "native": "ಪ್ರತಿ ರೂಪಾಯಿಗೂ ಒಂದು ಚಿಕ್ಕ ಕಥೆಯಿದೆ.",
+        "roman": "Prati roopaayigoo ondu chikka katheyide."
+      }
+    }
   }
 }

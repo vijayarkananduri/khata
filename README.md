@@ -1,45 +1,31 @@
 # Khata
 
-**Your money, a little clearer.** Khata is a native Android personal-finance tracker built with Kotlin, Jetpack Compose, Material 3, Room, DataStore, and Hilt. It stores transaction and account data locally, works offline, and does not use ads, analytics, or telemetry.
+**A quieter, more intentional way to stay close to your money.**
 
-## What works in this build
+Khata is a premium-feeling, offline-first Android money companion: clear daily spending, thoughtful quotes, and gentle reminders for the essentials you tend to restock. No ads. No analytics. No bank passwords. Your records stay on your device.
 
-- Manual bank, cash, and wallet accounts with starting balances; assign every new transaction to an account.
-- Quick Add with amount, income/expense, category, optional note, and a date picker for today or any earlier date.
-- Offline transactions, deterministic merchant/keyword categorization, review queue, and learned merchant rules after correction.
-- Home budget/comparison ring, top categories, recent activity, monthly calendar, year heatmap, analysis, search, and transaction details.
-- Google Sans UI type and Caveat accent type, a custom wallet app icon, animated capsule navigation, optional Dew frosted ambient surfaces, haptics, and reduced-motion handling.
-- User-requested Android notification permission and budget-crossing alerts. Alerts only work after the user grants permission and sets a budget.
-- CSV sharing/export and five-language quote catalog.
+## A little more clarity, every day
 
-Financial records and settings stay in local app storage. Android cloud backup is disabled. No bank password, PIN, OTP, or full account number is collected.
+- **Know where you stand.** A compact spending ring, budget comparison, category breakdown, and recent activity make the month easier to read.
+- **Capture the moment.** Add income or expenses to bank, cash, or wallet accounts, with date, category, and notes.
+- **Let patterns help.** Khata learns from repeat purchases in groceries, fuel, health and pet essentials. When a purchase rhythm is established, an optional local reminder can suggest checking whether you are running low.
+- **Make it feel yours.** Choose a warm light or deep dark palette, fully translucent Dew glass, reduced motion, haptics, and one of five supported languages. Context-aware and splash quotes keep the experience human.
+- **Keep control.** Export a CSV, turn nudges on or off, and keep financial data local. Android cloud backup is disabled.
 
-## Account Aggregator integration
+## A note about smart nudges
 
-Manual accounts work now. Live Indian Account Aggregator sync is **not enabled in this app**. The ReBIT flow requires an FIU platform with consent requests, callbacks, and secure financial-information fetches, while Sahamati documents FIU onboarding and regulatory eligibility. Khata therefore does not display a fake connected state or accept bank credentials. A real live integration needs an eligible FIU partner and provider onboarding/API configuration before implementation can be completed.
+Nudges infer a rough restock interval from repeat expense entries for the same merchant and supported category. They need at least two dated purchases to learn a pattern, run locally once daily, and require Android notification permission for background alerts. Estimates are suggestions—not inventory tracking—and can be turned off in Settings.
 
-- [ReBIT FIU callback specification](https://api.rebit.org.in/spec/fiu)
-- [ReBIT Account Aggregator API overview](https://api.rebit.org.in/spec/aa)
-- [Sahamati FIU onboarding guide](https://sahamati.org.in/how-to-join-the-account-aggregator-network-to-share-and-access-financial-data/)
+## What Khata does not pretend to do
 
-## Build locally
+Khata currently supports manually entered accounts; live Indian Account Aggregator connections are not included. A secure integration needs an eligible FIU partner and its provider onboarding, consent and callback services. Khata will not imitate a connected-bank state or collect bank credentials.
 
-Requirements: JDK 17 and Android SDK platform 35/build tools. From the project root:
+## Build and try
 
-```sh
-./gradlew testDebugUnitTest assembleDebug
-```
+Requirements: JDK 17 and Android SDK platform 35/build tools. Run `./gradlew testDebugUnitTest assembleDebug`. The installable **debug APK** is `app/build/outputs/apk/debug/app-debug.apk`; it is for testing, not a Play Store production signature.
 
-Debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
+Every push to `main` runs unit tests and assembles a debug APK in GitHub Actions. A user-owned production signing key is not configured, so releases are explicitly debug-signed.
 
-## GitHub Actions
+## Privacy and licenses
 
-Every push to `main` and manual `workflow_dispatch` runs `.github/workflows/android.yml`. The job runs unit tests, assembles the debug APK, and uploads a `khata-debug-apk` artifact. In GitHub, open **Actions → Build APK → run → Artifacts** and download it.
-
-## Release and signing
-
-The CI APK is debug-signed and suitable for installation/testing; it is not a Play Store production build. To make a Play-ready build, configure a user-owned signing key through GitHub Actions secrets (`KEYSTORE_B64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and add a separately verified release-signing job. Never commit a keystore or passwords.
-
-## Font licenses
-
-Bundled Google Sans and Caveat font software is provided under SIL Open Font License 1.1. License copies are in `app/src/main/assets/licenses/`.
+Transaction and preference data are stored locally; there is no analytics, advertising, or telemetry SDK. Google Sans and Caveat font license copies are in `app/src/main/assets/licenses/`.

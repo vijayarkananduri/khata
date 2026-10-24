@@ -84,8 +84,8 @@ fun KhataTheme(themeMode: String = "SYSTEM", dewSurface: Boolean = false, conten
         surfaceVariant = LightAlt, onSurfaceVariant = LightMuted, outline = LightBorder
     )
     val colors = if (dewSurface) base.copy(
-        surface = base.surface.copy(alpha = .88f),
-        surfaceVariant = base.surfaceVariant.copy(alpha = .72f)
+        surface = base.surface.copy(alpha = 0f),
+        surfaceVariant = base.surfaceVariant.copy(alpha = 0f)
     ) else base
     CompositionLocalProvider(LocalDewSurface provides dewSurface) {
         MaterialTheme(colorScheme = colors, typography = KhataTypography, content = content)
