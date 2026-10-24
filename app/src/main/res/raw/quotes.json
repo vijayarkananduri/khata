@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "splash": {"text": "Pehchaan. Money follows, my brother. Money follows.", "note": "Always English, hardcoded. Never localized."},
+  "languages": {
+    "hi": {"name":"हिन्दी","nameRoman":"Hindi","defaultScript":"ASK","quotes":[
+      {"id":"hi_money_follows","native":"पहचान। मनी फॉलोज, भाई, मनी फॉलोज।","roman":"Pehchaan. Money follows, bhai, money follows.","subtitle":"Recognition first. Money follows, brother.","trigger":"HOME_WELCOME"},
+      {"id":"hi_paisa_kheechta","native":"पैसा, पैसे को खींचता है।","roman":"Paisa, paise ko kheechta hai.","subtitle":"Money attracts money.","trigger":"FIRST_INVESTMENT"}]},
+    "te": {"name":"తెలుగు","nameRoman":"Telugu","defaultScript":"NATIVE","quotes":[
+      {"id":"te_dabbulu_urike","native":"డబ్బులు ఎవరికీ ఊరికే రావు.","roman":"Dabbulu evarikī ūrikē rāvu.","subtitle":"Money doesn't come for free.","trigger":"OVERSPEND"},
+      {"id":"te_lekkalu_matladakudadu","native":"మనం బాగున్నపుడు లెక్కలు మాట్లాడకూడదు, కష్టాల్లో ఉన్నప్పుడు విలువలు మాట్లాడకూడదు.","roman":"Manam bagunapudu lekkalu matladakudadu, kastalo unnapudu viluvalu matladakudadu.","subtitle":"When we are well off, we shouldn't talk about calculations; when in trouble, we shouldn't talk about values.","trigger":"BUDGET_SETUP"}]},
+    "ta": {"name":"தமிழ்","nameRoman":"Tamil","defaultScript":"NATIVE","quotes":[
+      {"id":"ta_kaiyil_konjam","native":"கையில கொஞ்சம் காசு இருந்தா...","roman":"Kaiyil konjam kasu iruntha...","subtitle":"If you have a little money in your hands, you are its boss. If you have money up to your neck, it becomes your boss.","trigger":"BUDGET_SETUP"},
+      {"id":"ta_ellam_panam","native":"எல்லாம் பணம் தான்.","roman":"Ellam panam thaan.","subtitle":"Everything is money.","trigger":"OVERSPEND"}]},
+    "ml": {"name":"മലയാളം","nameRoman":"Malayalam","defaultScript":"NATIVE","quotes":[
+      {"id":"ml_nee_po_mone","native":"നീ പോ മോനെ ദിനേശാ.","roman":"Nee po mone Dinesha.","subtitle":"Back off, Dinesha. (A playful dismissal.)","trigger":"UNDER_BUDGET_NOTIFICATION"},
+      {"id":"ml_panam_maram","native":"എന്റെ കയ്യിൽ പണം കായ്ക്കണ മരം ഒന്നുമില്ല.","roman":"Ente kayyil panam kaykkan maram onnumilla.","subtitle":"I don't have a money tree in my hand.","trigger":"EMPTY_STATE"}]},
+    "kn": {"name":"ಕನ್ನಡ","nameRoman":"Kannada","defaultScript":"NATIVE","quotes":[
+      {"id":"kn_ella_sigatte","native":"ಎಲ್ಲ ಸಿಗತ್ತೆ. ಎಲ್ಲ. ನಿಮಗೆ ಬೇಕಾಗಿರುವುದು ಹಣ ಮಾತ್ರ.","roman":"Ella sigatte. Ella. Nimagē bēkāgiruvudu haṇa mātra.","subtitle":"You'll get everything. Everything. You just need money.","trigger":"MILESTONE"},
+      {"id":"kn_bank_balance","native":"ಬ್ಯಾಂಕ್ ಬ್ಯಾಲೆನ್ಸ್ ನೋಡಿದ್ರೆ...","roman":"Bank balance nodidre...","subtitle":"If you looked at your bank balance...","trigger":"OVERSPEND"}]}
+  }
+}
