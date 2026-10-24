@@ -1,853 +1,100 @@
 {
-  "version": 1,
-  "splash": {
-    "text": "A calmer money day starts with one small choice."
-  },
   "languages": {
     "hi": {
-      "name": "हिन्दी",
-      "nameRoman": "Hindi",
-      "defaultScript": "ASK",
       "quotes": [
         {
-          "id": "hi_money_follows",
-          "native": "पहचान। मनी फॉलोज, भाई, मनी फॉलोज।",
-          "roman": "Pehchaan. Money follows, bhai, money follows.",
-          "subtitle": "Recognition first. Money follows, brother.",
-          "trigger": "HOME_WELCOME"
-        },
-        {
-          "id": "hi_paisa_kheechta",
-          "native": "पैसा, पैसे को खींचता है।",
-          "roman": "Paisa, paise ko kheechta hai.",
-          "subtitle": "Money attracts money.",
-          "trigger": "FIRST_INVESTMENT"
-        },
-        {
-          "id": "hi_daily_note",
-          "native": "छोटे फैसले मिलकर बड़ा सुकून देते हैं।",
-          "roman": "Chhote faisle milkar bada sukoon dete hain.",
-          "subtitle": "A small mindful choice today makes tomorrow easier.",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "hi_steady",
-          "native": "छोटे फैसले मिलकर बड़ा सुकून देते हैं।",
-          "roman": "Chhote faisle milkar bada sukoon dete hain.",
-          "subtitle": "Steady choices are worth noticing.",
-          "trigger": "ON_TRACK"
-        },
-        {
-          "id": "hi_meme_showme",
-          "native": "पैसे दिखाओ! बजट भी।",
-          "roman": "Paise dikhao! Budget bhi.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "hi_meme_greed",
-          "native": "लालच नहीं—बस महीने के आख़िर तक थोड़ा बैलेंस।",
-          "roman": "Laalach nahin—bas mahine ke aakhir tak thoda balance.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "hi_meme_ring",
-          "native": "एक बार में तो कोई बजट पार नहीं कर जाता… है ना?",
-          "roman": "Ek baar mein to koi budget paar nahin kar jaata… hai na?",
-          "subtitle": "Fantasy-film meme · One does not simply…",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "hi_meme_spidey",
-          "native": "बड़े खर्चों के साथ बड़ी बैंक स्टेटमेंट आती है।",
-          "roman": "Bade kharchon ke saath badi bank statement aati hai.",
-          "subtitle": "Superhero-movie money remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "hi_meme_payday",
-          "native": "मैं फिर लौटूँगा—अगली तनख़्वाह पर।",
-          "roman": "Main phir lautunga—agli tankhwaah par.",
-          "subtitle": "Action-film payday meme",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "hi_meme_budget",
-          "native": "तुम्हें एक बड़ा… बजट चाहिए।",
-          "roman": "Tumhein ek bada… budget chahiye.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws (1975), budget remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "hi_meme_offer",
-          "native": "ऐसा ऑफ़र दो जिसे तुम्हारा बजट मना न कर सके।",
-          "roman": "Aisa offer do jise tumhara budget mana na kar sake.",
-          "subtitle": "The Godfather (1972), budget-friendly remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "hi_meme_why",
-          "native": "इतने गंभीर क्यों? तुम्हारा वॉलेट भी यही पूछ रहा है।",
-          "roman": "Itne gambhir kyon? Tumhara wallet bhi yahi pooch raha hai.",
-          "subtitle": "The Dark Knight (2008), wallet meme remix",
+          "id": "movie_hi_k3g_2001_01",
+          "native": "पैसा तो हर कोई कमा लेता है, लेकिन इज्जत कमाना सबके बस की बात नहीं",
+          "roman": "Paisā to har koī kamā letā hai, lekin izzat kamānā sabke bas kī bāt nahīñ",
+          "film_title": "कभी खुशी कभी गम",
+          "film_year": "2001",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
           "trigger": "DAILY_NOTE"
         }
       ],
-      "splash": {
-        "native": "हर रुपया एक छोटी कहानी कहता है।",
-        "roman": "Har rupaya ek chhoti kahani kehta hai."
-      },
       "splashQuotes": [
         {
-          "id": "hi_splash_a",
-          "native": "इस महीने हीरो तुम हो—बजट बस कैमियो है।",
-          "roman": "Is mahine hero tum ho—budget bas cameo hai.",
-          "subtitle": "Finance-film opener"
-        },
-        {
-          "id": "hi_splash_b",
-          "native": "पहले प्लान। फिर शॉपिंग-मोंटाज।",
-          "roman": "Pehle plan. Phir shopping-montage.",
-          "subtitle": "Movie-montage remix"
-        },
-        {
-          "id": "hi_splash_c",
-          "native": "नकदी पर तुम्हारा कंट्रोल हो—कहानी का नहीं।",
-          "roman": "Nakdi par tumhara control ho—kahani ka nahin.",
-          "subtitle": "Money-movie mood"
-        },
-        {
-          "id": "hi_daily_note",
-          "native": "छोटे फैसले मिलकर बड़ा सुकून देते हैं।",
-          "roman": "Chhote faisle milkar bada sukoon dete hain.",
-          "subtitle": "A small mindful choice today makes tomorrow easier."
-        },
-        {
-          "id": "hi_meme_showme",
-          "native": "पैसे दिखाओ! बजट भी।",
-          "roman": "Paise dikhao! Budget bhi.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)"
-        },
-        {
-          "id": "hi_meme_greed",
-          "native": "लालच नहीं—बस महीने के आख़िर तक थोड़ा बैलेंस।",
-          "roman": "Laalach nahin—bas mahine ke aakhir tak thoda balance.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)"
-        },
-        {
-          "id": "hi_meme_ring",
-          "native": "एक बार में तो कोई बजट पार नहीं कर जाता… है ना?",
-          "roman": "Ek baar mein to koi budget paar nahin kar jaata… hai na?",
-          "subtitle": "Fantasy-film meme · One does not simply…"
-        },
-        {
-          "id": "hi_meme_spidey",
-          "native": "बड़े खर्चों के साथ बड़ी बैंक स्टेटमेंट आती है।",
-          "roman": "Bade kharchon ke saath badi bank statement aati hai.",
-          "subtitle": "Superhero-movie money remix"
-        },
-        {
-          "id": "hi_meme_payday",
-          "native": "मैं फिर लौटूँगा—अगली तनख़्वाह पर।",
-          "roman": "Main phir lautunga—agli tankhwaah par.",
-          "subtitle": "Action-film payday meme"
-        },
-        {
-          "id": "hi_meme_budget",
-          "native": "तुम्हें एक बड़ा… बजट चाहिए।",
-          "roman": "Tumhein ek bada… budget chahiye.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws (1975), budget remix"
-        },
-        {
-          "id": "hi_meme_offer",
-          "native": "ऐसा ऑफ़र दो जिसे तुम्हारा बजट मना न कर सके।",
-          "roman": "Aisa offer do jise tumhara budget mana na kar sake.",
-          "subtitle": "The Godfather (1972), budget-friendly remix"
-        },
-        {
-          "id": "hi_meme_why",
-          "native": "इतने गंभीर क्यों? तुम्हारा वॉलेट भी यही पूछ रहा है।",
-          "roman": "Itne gambhir kyon? Tumhara wallet bhi yahi pooch raha hai.",
-          "subtitle": "The Dark Knight (2008), wallet meme remix"
+          "id": "movie_hi_k3g_2001_01",
+          "native": "पैसा तो हर कोई कमा लेता है, लेकिन इज्जत कमाना सबके बस की बात नहीं",
+          "roman": "Paisā to har koī kamā letā hai, lekin izzat kamānā sabke bas kī bāt nahīñ",
+          "film_title": "कभी खुशी कभी गम",
+          "film_year": "2001",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
         }
       ]
     },
     "te": {
-      "name": "తెలుగు",
-      "nameRoman": "Telugu",
-      "defaultScript": "NATIVE",
       "quotes": [
         {
-          "id": "te_dabbulu_urike",
-          "native": "డబ్బులు ఎవరికీ ఊరికే రావు.",
-          "roman": "Dabbulu evarikī ūrikē rāvu.",
-          "subtitle": "Money doesn't come for free.",
-          "trigger": "OVERSPEND"
-        },
-        {
-          "id": "te_lekkalu_matladakudadu",
-          "native": "మనం బాగున్నపుడు లెక్కలు మాట్లాడకూడదు, కష్టాల్లో ఉన్నప్పుడు విలువలు మాట్లాడకూడదు.",
-          "roman": "Manam bagunapudu lekkalu matladakudadu, kastalo unnapudu viluvalu matladakudadu.",
-          "subtitle": "When we are well off, we shouldn't talk about calculations; when in trouble, we shouldn't talk about values.",
-          "trigger": "BUDGET_SETUP"
-        },
-        {
-          "id": "te_daily_note",
-          "native": "చిన్న నిర్ణయాలే మనసుకు పెద్ద నెమ్మదినిస్తాయి.",
-          "roman": "Chinna nirnayaale manasuku pedda nemmadinistaayi.",
-          "subtitle": "A small mindful choice today makes tomorrow easier.",
+          "id": "movie_te_lucky_baskhar_2024_01",
+          "native": "రూపాయి రూపాయి దాచుకుంటాం..",
+          "roman": "rūpāyi rūpāyi dācukuṇṭām..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
           "trigger": "DAILY_NOTE"
         },
         {
-          "id": "te_steady",
-          "native": "చిన్న నిర్ణయాలే మనసుకు పెద్ద నెమ్మదినిస్తాయి.",
-          "roman": "Chinna nirnayaale manasuku pedda nemmadinistaayi.",
-          "subtitle": "Steady choices are worth noticing.",
-          "trigger": "ON_TRACK"
-        },
-        {
-          "id": "te_meme_showme",
-          "native": "డబ్బు చూపించు! బడ్జెట్‌ను కూడా.",
-          "roman": "Dabbu choopinchū! Budget-nu kūdā.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)",
+          "id": "movie_te_lucky_baskhar_2024_02",
+          "native": "ఒక్క రూపాయి కూడా మిగలకుండా ఖర్చు పెట్టేస్తాం సార్..",
+          "roman": "okka rūpāyi kūḍā migalakuṇḍā kharcu peṭṭēstāṁ sār..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
           "trigger": "DAILY_NOTE"
         },
         {
-          "id": "te_meme_greed",
-          "native": "దురాశ కాదు—నెలాఖరువరకు కొంచెం బ్యాలెన్స్ చాలు.",
-          "roman": "Durāśa kādu—nelākharuvaraku konchem balance chālu.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "te_meme_ring",
-          "native": "బడ్జెట్‌ను ఒక్కసారిగా దాటేయరు… కదా?",
-          "roman": "Budget-nu okkasāriga dāṭeyaru… kadā?",
-          "subtitle": "Fantasy-film meme · One does not simply…",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "te_meme_spidey",
-          "native": "పెద్ద ఖర్చులతో పెద్ద బ్యాంక్ స్టేట్‌మెంట్ వస్తుంది.",
-          "roman": "Pedda kharchulato pedda bank statement vastundi.",
-          "subtitle": "Superhero-movie money remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "te_meme_payday",
-          "native": "నేను తిరిగొస్తా… జీతం వచ్చినప్పుడు.",
-          "roman": "Nēnu tirigostā… jītam vachchinappuḍu.",
-          "subtitle": "Action-film payday meme",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "te_meme_budget",
-          "native": "మీకు ఇంకా పెద్ద… బడ్జెట్ కావాలి.",
-          "roman": "Mīku inkā pedda… budget kāvāli.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws, budget remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "te_meme_offer",
-          "native": "నీ బడ్జెట్ కాదనలేని ఆఫర్ ఇవ్వు.",
-          "roman": "Nī budget kādanalēni offer ivvu.",
-          "subtitle": "The Godfather, budget-friendly remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "te_meme_why",
-          "native": "ఇంత సీరియస్ ఎందుకు? నీ వాలెట్ కూడా అదే అడుగుతోంది.",
-          "roman": "Inta serious enduku? Nī wallet kūḍā adē aḍugutōndi.",
-          "subtitle": "The Dark Knight, wallet meme remix",
+          "id": "movie_te_lucky_baskhar_2024_03",
+          "native": "డబ్బుంటేనే మర్యాద.. ప్రేమ..",
+          "roman": "ḍabbunṭēnē maryāda.. prēma..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
           "trigger": "DAILY_NOTE"
         }
       ],
-      "splash": {
-        "native": "ప్రతి రూపాయి ఒక చిన్న కథ చెబుతుంది.",
-        "roman": "Prathi rupayi oka chinna katha chebutundi."
-      },
       "splashQuotes": [
         {
-          "id": "te_splash_a",
-          "native": "ఈ నెల హీరో నువ్వే—బడ్జెట్ చిన్న పాత్ర మాత్రమే.",
-          "roman": "Ī nela hīrō nuvvē—budget chinna pātra mātramē.",
-          "subtitle": "Finance-film opener"
+          "id": "movie_te_lucky_baskhar_2024_01",
+          "native": "రూపాయి రూపాయి దాచుకుంటాం..",
+          "roman": "rūpāyi rūpāyi dācukuṇṭām..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
         },
         {
-          "id": "te_splash_b",
-          "native": "ముందు ప్లాన్. తర్వాత షాపింగ్ మాంటేజ్.",
-          "roman": "Mundu plan. Tarvāta shopping montage.",
-          "subtitle": "Movie-montage remix"
+          "id": "movie_te_lucky_baskhar_2024_02",
+          "native": "ఒక్క రూపాయి కూడా మిగలకుండా ఖర్చు పెట్టేస్తాం సార్..",
+          "roman": "okka rūpāyi kūḍā migalakuṇḍā kharcu peṭṭēstāṁ sār..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
         },
         {
-          "id": "te_splash_c",
-          "native": "కథ డబ్బును నడపకూడదు—నువ్వే నడపు.",
-          "roman": "Katha dabbunu naḍapakūḍadu—nuvvē naḍapu.",
-          "subtitle": "Money-movie mood"
-        },
-        {
-          "id": "te_daily_note",
-          "native": "చిన్న నిర్ణయాలే మనసుకు పెద్ద నెమ్మదినిస్తాయి.",
-          "roman": "Chinna nirnayaale manasuku pedda nemmadinistaayi.",
-          "subtitle": "A small mindful choice today makes tomorrow easier."
-        },
-        {
-          "id": "te_meme_showme",
-          "native": "డబ్బు చూపించు! బడ్జెట్‌ను కూడా.",
-          "roman": "Dabbu choopinchū! Budget-nu kūdā.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)"
-        },
-        {
-          "id": "te_meme_greed",
-          "native": "దురాశ కాదు—నెలాఖరువరకు కొంచెం బ్యాలెన్స్ చాలు.",
-          "roman": "Durāśa kādu—nelākharuvaraku konchem balance chālu.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)"
-        },
-        {
-          "id": "te_meme_ring",
-          "native": "బడ్జెట్‌ను ఒక్కసారిగా దాటేయరు… కదా?",
-          "roman": "Budget-nu okkasāriga dāṭeyaru… kadā?",
-          "subtitle": "Fantasy-film meme · One does not simply…"
-        },
-        {
-          "id": "te_meme_spidey",
-          "native": "పెద్ద ఖర్చులతో పెద్ద బ్యాంక్ స్టేట్‌మెంట్ వస్తుంది.",
-          "roman": "Pedda kharchulato pedda bank statement vastundi.",
-          "subtitle": "Superhero-movie money remix"
-        },
-        {
-          "id": "te_meme_payday",
-          "native": "నేను తిరిగొస్తా… జీతం వచ్చినప్పుడు.",
-          "roman": "Nēnu tirigostā… jītam vachchinappuḍu.",
-          "subtitle": "Action-film payday meme"
-        },
-        {
-          "id": "te_meme_budget",
-          "native": "మీకు ఇంకా పెద్ద… బడ్జెట్ కావాలి.",
-          "roman": "Mīku inkā pedda… budget kāvāli.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws, budget remix"
-        },
-        {
-          "id": "te_meme_offer",
-          "native": "నీ బడ్జెట్ కాదనలేని ఆఫర్ ఇవ్వు.",
-          "roman": "Nī budget kādanalēni offer ivvu.",
-          "subtitle": "The Godfather, budget-friendly remix"
-        },
-        {
-          "id": "te_meme_why",
-          "native": "ఇంత సీరియస్ ఎందుకు? నీ వాలెట్ కూడా అదే అడుగుతోంది.",
-          "roman": "Inta serious enduku? Nī wallet kūḍā adē aḍugutōndi.",
-          "subtitle": "The Dark Knight, wallet meme remix"
+          "id": "movie_te_lucky_baskhar_2024_03",
+          "native": "డబ్బుంటేనే మర్యాద.. ప్రేమ..",
+          "roman": "ḍabbunṭēnē maryāda.. prēma..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
         }
       ]
     },
     "ta": {
-      "name": "தமிழ்",
-      "nameRoman": "Tamil",
-      "defaultScript": "NATIVE",
-      "quotes": [
-        {
-          "id": "ta_kaiyil_konjam",
-          "native": "கையில கொஞ்சம் காசு இருந்தா...",
-          "roman": "Kaiyil konjam kasu iruntha...",
-          "subtitle": "If you have a little money in your hands, you are its boss. If you have money up to your neck, it becomes your boss.",
-          "trigger": "BUDGET_SETUP"
-        },
-        {
-          "id": "ta_ellam_panam",
-          "native": "எல்லாம் பணம் தான்.",
-          "roman": "Ellam panam thaan.",
-          "subtitle": "Everything is money.",
-          "trigger": "OVERSPEND"
-        },
-        {
-          "id": "ta_daily_note",
-          "native": "சிறிய முடிவுகள் சேர்ந்து நிம்மதியைத் தரும்.",
-          "roman": "Siriya mudivugal serndhu nimmadhiyai tharum.",
-          "subtitle": "A small mindful choice today makes tomorrow easier.",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ta_steady",
-          "native": "சிறிய முடிவுகள் சேர்ந்து நிம்மதியைத் தரும்.",
-          "roman": "Siriya mudivugal serndhu nimmadhiyai tharum.",
-          "subtitle": "Steady choices are worth noticing.",
-          "trigger": "ON_TRACK"
-        },
-        {
-          "id": "ta_meme_showme",
-          "native": "பணத்தைக் காட்டு! பட்ஜெட்டையும்.",
-          "roman": "Panaththaik kaattu! Budgettaiyum.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ta_meme_greed",
-          "native": "பேராசை வேண்டாம்—மாதக் கடைசிவரை இருப்பு இருந்தால் போதும்.",
-          "roman": "Peraasai vendaam—maadhak kadaisivarai iruppu irundhaal podhum.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ta_meme_ring",
-          "native": "பட்ஜெட்டை ஒரே நாளில் கடக்க முடியாது… இல்லையா?",
-          "roman": "Budgettai ore naalil kadakka mudiyaadhu… illaiyaa?",
-          "subtitle": "Fantasy-film meme · One does not simply…",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ta_meme_spidey",
-          "native": "பெரிய செலவுகளுக்கு பெரிய வங்கி அறிக்கை வரும்.",
-          "roman": "Periya selavugalukku periya vangi arikkai varum.",
-          "subtitle": "Superhero-movie money remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ta_meme_payday",
-          "native": "நான் திரும்ப வருவேன்… சம்பள நாளில்.",
-          "roman": "Naan thirumba varuven… sambala naalil.",
-          "subtitle": "Action-film payday meme",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ta_meme_budget",
-          "native": "உனக்கு இன்னும் பெரிய… பட்ஜெட் தேவை.",
-          "roman": "Unakku innum periya… budget thevai.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws, budget remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ta_meme_offer",
-          "native": "உன் பட்ஜெட் மறுக்க முடியாத சலுகையைக் கொடு.",
-          "roman": "Un budget marukka mudiyaadha salugaiyaik kodu.",
-          "subtitle": "The Godfather, budget-friendly remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ta_meme_why",
-          "native": "ஏன் இவ்வளவு சீரியஸ்? உன் பணப்பையும் அதையே கேட்கிறது.",
-          "roman": "Yen ivvalavu serious? Un panappaiyum adhaiye ketkiradhu.",
-          "subtitle": "The Dark Knight, wallet meme remix",
-          "trigger": "DAILY_NOTE"
-        }
-      ],
-      "splash": {
-        "native": "ஒவ்வொரு ரூபாயும் ஒரு சிறு கதையைச் சொல்கிறது.",
-        "roman": "Ovvoru roopaayum oru siru kathaiyai solgiradhu."
-      },
-      "splashQuotes": [
-        {
-          "id": "ta_splash_a",
-          "native": "இந்த மாத ஹீரோ நீதான்—பட்ஜெட் துணை நடிகர்.",
-          "roman": "Indha maadha hero neethaan—budget thunai nadigar.",
-          "subtitle": "Finance-film opener"
-        },
-        {
-          "id": "ta_splash_b",
-          "native": "முதலில் திட்டம். பிறகு ஷாப்பிங் மான்டாஜ்.",
-          "roman": "Mudhalil thittam. Piragu shopping montage.",
-          "subtitle": "Movie-montage remix"
-        },
-        {
-          "id": "ta_splash_c",
-          "native": "பணத்தை கதை நடத்த விடாதே—நீயே நடத்து.",
-          "roman": "Panaththai kathai nadaththa vidaadhe—neeye nadaththu.",
-          "subtitle": "Money-movie mood"
-        },
-        {
-          "id": "ta_daily_note",
-          "native": "சிறிய முடிவுகள் சேர்ந்து நிம்மதியைத் தரும்.",
-          "roman": "Siriya mudivugal serndhu nimmadhiyai tharum.",
-          "subtitle": "A small mindful choice today makes tomorrow easier."
-        },
-        {
-          "id": "ta_meme_showme",
-          "native": "பணத்தைக் காட்டு! பட்ஜெட்டையும்.",
-          "roman": "Panaththaik kaattu! Budgettaiyum.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)"
-        },
-        {
-          "id": "ta_meme_greed",
-          "native": "பேராசை வேண்டாம்—மாதக் கடைசிவரை இருப்பு இருந்தால் போதும்.",
-          "roman": "Peraasai vendaam—maadhak kadaisivarai iruppu irundhaal podhum.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)"
-        },
-        {
-          "id": "ta_meme_ring",
-          "native": "பட்ஜெட்டை ஒரே நாளில் கடக்க முடியாது… இல்லையா?",
-          "roman": "Budgettai ore naalil kadakka mudiyaadhu… illaiyaa?",
-          "subtitle": "Fantasy-film meme · One does not simply…"
-        },
-        {
-          "id": "ta_meme_spidey",
-          "native": "பெரிய செலவுகளுக்கு பெரிய வங்கி அறிக்கை வரும்.",
-          "roman": "Periya selavugalukku periya vangi arikkai varum.",
-          "subtitle": "Superhero-movie money remix"
-        },
-        {
-          "id": "ta_meme_payday",
-          "native": "நான் திரும்ப வருவேன்… சம்பள நாளில்.",
-          "roman": "Naan thirumba varuven… sambala naalil.",
-          "subtitle": "Action-film payday meme"
-        },
-        {
-          "id": "ta_meme_budget",
-          "native": "உனக்கு இன்னும் பெரிய… பட்ஜெட் தேவை.",
-          "roman": "Unakku innum periya… budget thevai.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws, budget remix"
-        },
-        {
-          "id": "ta_meme_offer",
-          "native": "உன் பட்ஜெட் மறுக்க முடியாத சலுகையைக் கொடு.",
-          "roman": "Un budget marukka mudiyaadha salugaiyaik kodu.",
-          "subtitle": "The Godfather, budget-friendly remix"
-        },
-        {
-          "id": "ta_meme_why",
-          "native": "ஏன் இவ்வளவு சீரியஸ்? உன் பணப்பையும் அதையே கேட்கிறது.",
-          "roman": "Yen ivvalavu serious? Un panappaiyum adhaiye ketkiradhu.",
-          "subtitle": "The Dark Knight, wallet meme remix"
-        }
-      ]
+      "quotes": [],
+      "splashQuotes": []
     },
     "ml": {
-      "name": "മലയാളം",
-      "nameRoman": "Malayalam",
-      "defaultScript": "NATIVE",
-      "quotes": [
-        {
-          "id": "ml_nee_po_mone",
-          "native": "നീ പോ മോനെ ദിനേശാ.",
-          "roman": "Nee po mone Dinesha.",
-          "subtitle": "Back off, Dinesha. (A playful dismissal.)",
-          "trigger": "UNDER_BUDGET_NOTIFICATION"
-        },
-        {
-          "id": "ml_panam_maram",
-          "native": "എന്റെ കയ്യിൽ പണം കായ്ക്കണ മരം ഒന്നുമില്ല.",
-          "roman": "Ente kayyil panam kaykkan maram onnumilla.",
-          "subtitle": "I don't have a money tree in my hand.",
-          "trigger": "EMPTY_STATE"
-        },
-        {
-          "id": "ml_daily_note",
-          "native": "ചെറിയ തീരുമാനങ്ങൾ വലിയ ആശ്വാസമാകും.",
-          "roman": "Cheriya theerumanangal valiya aashwasamaakum.",
-          "subtitle": "A small mindful choice today makes tomorrow easier.",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ml_steady",
-          "native": "ചെറിയ തീരുമാനങ്ങൾ വലിയ ആശ്വാസമാകും.",
-          "roman": "Cheriya theerumanangal valiya aashwasamaakum.",
-          "subtitle": "Steady choices are worth noticing.",
-          "trigger": "ON_TRACK"
-        },
-        {
-          "id": "ml_meme_showme",
-          "native": "കാശ് കാണിക്കൂ! ബജറ്റും.",
-          "roman": "Kaash kaanikkū! Budgetum.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ml_meme_greed",
-          "native": "അത്യാഗ്രഹമല്ല—മാസാവസാനം വരെ അല്പം ബാലൻസ് മതി.",
-          "roman": "Athyaagrahamalla—maasaavasaanam vare alpam balance mathi.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ml_meme_ring",
-          "native": "ഒറ്റയടിക്ക് ബജറ്റ് തീരില്ല… അല്ലേ?",
-          "roman": "Ottayadikku budget theerilla… alle?",
-          "subtitle": "Fantasy-film meme · One does not simply…",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ml_meme_spidey",
-          "native": "വലിയ ചെലവുകൾക്ക് വലിയ ബാങ്ക് സ്റ്റേറ്റ്‌മെന്റ് വരും.",
-          "roman": "Valiya chelavukalkku valiya bank statement varum.",
-          "subtitle": "Superhero-movie money remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ml_meme_payday",
-          "native": "ഞാൻ തിരിച്ചു വരും… ശമ്പളദിവസം.",
-          "roman": "Njaan thirichu varum… shambala divasam.",
-          "subtitle": "Action-film payday meme",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ml_meme_budget",
-          "native": "നിനക്ക് കുറച്ചുകൂടി വലിയ… ബജറ്റ് വേണം.",
-          "roman": "Ninakku kurachukoodi valiya… budget venam.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws, budget remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ml_meme_offer",
-          "native": "നിന്റെ ബജറ്റിന് നിരസിക്കാനാവാത്തൊരു ഓഫർ കൊടുക്ക്.",
-          "roman": "Ninte budgetinu nirasikkaanaavathoru offer kodukku.",
-          "subtitle": "The Godfather, budget-friendly remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "ml_meme_why",
-          "native": "എന്താ ഇത്ര സീരിയസ്? നിന്റെ വാലറ്റും അതേ ചോദിക്കുന്നു.",
-          "roman": "Enthaa ithra serious? Ninte walletum athe chodikkunnu.",
-          "subtitle": "The Dark Knight, wallet meme remix",
-          "trigger": "DAILY_NOTE"
-        }
-      ],
-      "splash": {
-        "native": "ഓരോ രൂപയ്ക്കും ഒരു ചെറിയ കഥയുണ്ട്.",
-        "roman": "Oro roopaykkum oru cheriya kathayundu."
-      },
-      "splashQuotes": [
-        {
-          "id": "ml_splash_a",
-          "native": "ഈ മാസത്തെ ഹീറോ നീയാണ്—ബജറ്റ് അതിഥി വേഷം മാത്രം.",
-          "roman": "Ee maasathe hero neeyaan—budget athithi vesham maathram.",
-          "subtitle": "Finance-film opener"
-        },
-        {
-          "id": "ml_splash_b",
-          "native": "ആദ്യം പ്ലാൻ. പിന്നെ ഷോപ്പിംഗ് മോണ്ടേജ്.",
-          "roman": "Aadyam plan. Pinne shopping montage.",
-          "subtitle": "Movie-montage remix"
-        },
-        {
-          "id": "ml_splash_c",
-          "native": "പണം കഥയെ നയിക്കേണ്ട—നീ നയിക്കൂ.",
-          "roman": "Panam kathaye nayikkenda—nee nayikkuu.",
-          "subtitle": "Money-movie mood"
-        },
-        {
-          "id": "ml_daily_note",
-          "native": "ചെറിയ തീരുമാനങ്ങൾ വലിയ ആശ്വാസമാകും.",
-          "roman": "Cheriya theerumanangal valiya aashwasamaakum.",
-          "subtitle": "A small mindful choice today makes tomorrow easier."
-        },
-        {
-          "id": "ml_meme_showme",
-          "native": "കാശ് കാണിക്കൂ! ബജറ്റും.",
-          "roman": "Kaash kaanikkū! Budgetum.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)"
-        },
-        {
-          "id": "ml_meme_greed",
-          "native": "അത്യാഗ്രഹമല്ല—മാസാവസാനം വരെ അല്പം ബാലൻസ് മതി.",
-          "roman": "Athyaagrahamalla—maasaavasaanam vare alpam balance mathi.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)"
-        },
-        {
-          "id": "ml_meme_ring",
-          "native": "ഒറ്റയടിക്ക് ബജറ്റ് തീരില്ല… അല്ലേ?",
-          "roman": "Ottayadikku budget theerilla… alle?",
-          "subtitle": "Fantasy-film meme · One does not simply…"
-        },
-        {
-          "id": "ml_meme_spidey",
-          "native": "വലിയ ചെലവുകൾക്ക് വലിയ ബാങ്ക് സ്റ്റേറ്റ്‌മെന്റ് വരും.",
-          "roman": "Valiya chelavukalkku valiya bank statement varum.",
-          "subtitle": "Superhero-movie money remix"
-        },
-        {
-          "id": "ml_meme_payday",
-          "native": "ഞാൻ തിരിച്ചു വരും… ശമ്പളദിവസം.",
-          "roman": "Njaan thirichu varum… shambala divasam.",
-          "subtitle": "Action-film payday meme"
-        },
-        {
-          "id": "ml_meme_budget",
-          "native": "നിനക്ക് കുറച്ചുകൂടി വലിയ… ബജറ്റ് വേണം.",
-          "roman": "Ninakku kurachukoodi valiya… budget venam.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws, budget remix"
-        },
-        {
-          "id": "ml_meme_offer",
-          "native": "നിന്റെ ബജറ്റിന് നിരസിക്കാനാവാത്തൊരു ഓഫർ കൊടുക്ക്.",
-          "roman": "Ninte budgetinu nirasikkaanaavathoru offer kodukku.",
-          "subtitle": "The Godfather, budget-friendly remix"
-        },
-        {
-          "id": "ml_meme_why",
-          "native": "എന്താ ഇത്ര സീരിയസ്? നിന്റെ വാലറ്റും അതേ ചോദിക്കുന്നു.",
-          "roman": "Enthaa ithra serious? Ninte walletum athe chodikkunnu.",
-          "subtitle": "The Dark Knight, wallet meme remix"
-        }
-      ]
+      "quotes": [],
+      "splashQuotes": []
     },
     "kn": {
-      "name": "ಕನ್ನಡ",
-      "nameRoman": "Kannada",
-      "defaultScript": "NATIVE",
-      "quotes": [
-        {
-          "id": "kn_ella_sigatte",
-          "native": "ಎಲ್ಲ ಸಿಗತ್ತೆ. ಎಲ್ಲ. ನಿಮಗೆ ಬೇಕಾಗಿರುವುದು ಹಣ ಮಾತ್ರ.",
-          "roman": "Ella sigatte. Ella. Nimagē bēkāgiruvudu haṇa mātra.",
-          "subtitle": "You'll get everything. Everything. You just need money.",
-          "trigger": "MILESTONE"
-        },
-        {
-          "id": "kn_bank_balance",
-          "native": "ಬ್ಯಾಂಕ್ ಬ್ಯಾಲೆನ್ಸ್ ನೋಡಿದ್ರೆ...",
-          "roman": "Bank balance nodidre...",
-          "subtitle": "If you looked at your bank balance...",
-          "trigger": "OVERSPEND"
-        },
-        {
-          "id": "kn_daily_note",
-          "native": "ಚಿಕ್ಕ ನಿರ್ಧಾರಗಳು ದೊಡ್ಡ ನೆಮ್ಮದಿ ತರುತ್ತವೆ.",
-          "roman": "Chikka nirdhaaragalu dodda nemmadi taruttave.",
-          "subtitle": "A small mindful choice today makes tomorrow easier.",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "kn_steady",
-          "native": "ಚಿಕ್ಕ ನಿರ್ಧಾರಗಳು ದೊಡ್ಡ ನೆಮ್ಮದಿ ತರುತ್ತವೆ.",
-          "roman": "Chikka nirdhaaragalu dodda nemmadi taruttave.",
-          "subtitle": "Steady choices are worth noticing.",
-          "trigger": "ON_TRACK"
-        },
-        {
-          "id": "kn_meme_showme",
-          "native": "ಹಣ ತೋರಿಸು! ಬಜೆಟ್ ಕೂಡ.",
-          "roman": "Haṇa tōrisu! Budget kūḍa.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "kn_meme_greed",
-          "native": "ದುರಾಸೆ ಬೇಡ—ತಿಂಗಳ ಕೊನೆಯವರೆಗೆ ಸ್ವಲ್ಪ ಬ್ಯಾಲೆನ್ಸ್ ಸಾಕು.",
-          "roman": "Durāse bēḍa—tiṅgaḷa konevarage svalpa balance sāku.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "kn_meme_ring",
-          "native": "ಒಂದೇ ಸಲಕ್ಕೆ ಬಜೆಟ್ ಮೀರಲ್ಲ… ಅಲ್ವಾ?",
-          "roman": "Ondē salakke budget mīralla… alvā?",
-          "subtitle": "Fantasy-film meme · One does not simply…",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "kn_meme_spidey",
-          "native": "ದೊಡ್ಡ ಖರ್ಚಿಗೆ ದೊಡ್ಡ ಬ್ಯಾಂಕ್ ಸ್ಟೇಟ್‌ಮೆಂಟ್ ಬರುತ್ತದೆ.",
-          "roman": "Doḍḍa kharchige doḍḍa bank statement baruttade.",
-          "subtitle": "Superhero-movie money remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "kn_meme_payday",
-          "native": "ನಾನು ಮತ್ತೆ ಬರುತ್ತೇನೆ… ಸಂಬಳದ ದಿನ.",
-          "roman": "Nānu matte baruttēne… sambhaḷada dina.",
-          "subtitle": "Action-film payday meme",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "kn_meme_budget",
-          "native": "ನಿನಗೆ ಇನ್ನೂ ದೊಡ್ಡ… ಬಜೆಟ್ ಬೇಕು.",
-          "roman": "Ninage innū doḍḍa… budget bēku.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws, budget remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "kn_meme_offer",
-          "native": "ನಿನ್ನ ಬಜೆಟ್ ನಿರಾಕರಿಸಲಾಗದ ಒಂದು ಆಫರ್ ಕೊಡು.",
-          "roman": "Ninna budget nirākarisalāgada ondu offer koḍu.",
-          "subtitle": "The Godfather, budget-friendly remix",
-          "trigger": "DAILY_NOTE"
-        },
-        {
-          "id": "kn_meme_why",
-          "native": "ಏಕೆ ಇಷ್ಟು ಗಂಭೀರ? ನಿನ್ನ ವಾಲೆಟ್ ಕೂಡ ಅದನ್ನೇ ಕೇಳುತ್ತಿದೆ.",
-          "roman": "Ēke iṣṭu gambhīra? Ninna wallet kūḍa adannē kēḷuttide.",
-          "subtitle": "The Dark Knight, wallet meme remix",
-          "trigger": "DAILY_NOTE"
-        }
-      ],
-      "splash": {
-        "native": "ಪ್ರತಿ ರೂಪಾಯಿಗೂ ಒಂದು ಚಿಕ್ಕ ಕಥೆಯಿದೆ.",
-        "roman": "Prati roopaayigoo ondu chikka katheyide."
-      },
-      "splashQuotes": [
-        {
-          "id": "kn_splash_a",
-          "native": "ಈ ತಿಂಗಳ ಹೀರೋ ನೀನೇ—ಬಜೆಟ್ ಅತಿಥಿ ಪಾತ್ರ ಮಾತ್ರ.",
-          "roman": "Ī tiṅgaḷa hīrō nīnē—budget atithi pātra mātra.",
-          "subtitle": "Finance-film opener"
-        },
-        {
-          "id": "kn_splash_b",
-          "native": "ಮೊದಲು ಪ್ಲಾನ್. ನಂತರ ಶಾಪಿಂಗ್ ಮಾಂಟೇಜ್.",
-          "roman": "Modalu plan. Nantara shopping montage.",
-          "subtitle": "Movie-montage remix"
-        },
-        {
-          "id": "kn_splash_c",
-          "native": "ಹಣ ಕಥೆ ನಡೆಸಬಾರದು—ನೀನೇ ನಡೆಸು.",
-          "roman": "Haṇa kathe naḍesabāradu—nīnē naḍesu.",
-          "subtitle": "Money-movie mood"
-        },
-        {
-          "id": "kn_daily_note",
-          "native": "ಚಿಕ್ಕ ನಿರ್ಧಾರಗಳು ದೊಡ್ಡ ನೆಮ್ಮದಿ ತರುತ್ತವೆ.",
-          "roman": "Chikka nirdhaaragalu dodda nemmadi taruttave.",
-          "subtitle": "A small mindful choice today makes tomorrow easier."
-        },
-        {
-          "id": "kn_meme_showme",
-          "native": "ಹಣ ತೋರಿಸು! ಬಜೆಟ್ ಕೂಡ.",
-          "roman": "Haṇa tōrisu! Budget kūḍa.",
-          "subtitle": "“Show me the money!” · Jerry Maguire (1996)"
-        },
-        {
-          "id": "kn_meme_greed",
-          "native": "ದುರಾಸೆ ಬೇಡ—ತಿಂಗಳ ಕೊನೆಯವರೆಗೆ ಸ್ವಲ್ಪ ಬ್ಯಾಲೆನ್ಸ್ ಸಾಕು.",
-          "roman": "Durāse bēḍa—tiṅgaḷa konevarage svalpa balance sāku.",
-          "subtitle": "“Greed is good” — budget remix · Wall Street (1987)"
-        },
-        {
-          "id": "kn_meme_ring",
-          "native": "ಒಂದೇ ಸಲಕ್ಕೆ ಬಜೆಟ್ ಮೀರಲ್ಲ… ಅಲ್ವಾ?",
-          "roman": "Ondē salakke budget mīralla… alvā?",
-          "subtitle": "Fantasy-film meme · One does not simply…"
-        },
-        {
-          "id": "kn_meme_spidey",
-          "native": "ದೊಡ್ಡ ಖರ್ಚಿಗೆ ದೊಡ್ಡ ಬ್ಯಾಂಕ್ ಸ್ಟೇಟ್‌ಮೆಂಟ್ ಬರುತ್ತದೆ.",
-          "roman": "Doḍḍa kharchige doḍḍa bank statement baruttade.",
-          "subtitle": "Superhero-movie money remix"
-        },
-        {
-          "id": "kn_meme_payday",
-          "native": "ನಾನು ಮತ್ತೆ ಬರುತ್ತೇನೆ… ಸಂಬಳದ ದಿನ.",
-          "roman": "Nānu matte baruttēne… sambhaḷada dina.",
-          "subtitle": "Action-film payday meme"
-        },
-        {
-          "id": "kn_meme_budget",
-          "native": "ನಿನಗೆ ಇನ್ನೂ ದೊಡ್ಡ… ಬಜೆಟ್ ಬೇಕು.",
-          "roman": "Ninage innū doḍḍa… budget bēku.",
-          "subtitle": "“You’re gonna need a bigger boat” · Jaws, budget remix"
-        },
-        {
-          "id": "kn_meme_offer",
-          "native": "ನಿನ್ನ ಬಜೆಟ್ ನಿರಾಕರಿಸಲಾಗದ ಒಂದು ಆಫರ್ ಕೊಡು.",
-          "roman": "Ninna budget nirākarisalāgada ondu offer koḍu.",
-          "subtitle": "The Godfather, budget-friendly remix"
-        },
-        {
-          "id": "kn_meme_why",
-          "native": "ಏಕೆ ಇಷ್ಟು ಗಂಭೀರ? ನಿನ್ನ ವಾಲೆಟ್ ಕೂಡ ಅದನ್ನೇ ಕೇಳುತ್ತಿದೆ.",
-          "roman": "Ēke iṣṭu gambhīra? Ninna wallet kūḍa adannē kēḷuttide.",
-          "subtitle": "The Dark Knight, wallet meme remix"
-        }
-      ]
+      "quotes": [],
+      "splashQuotes": []
     }
   }
 }

@@ -87,7 +87,6 @@ class KhataViewModel @Inject constructor(
     fun language(value: String) = viewModelScope.launch { preferences.setLanguage(value) }
     fun roman(value: Boolean) = viewModelScope.launch { preferences.setRoman(value) }
     fun theme(value: String) = viewModelScope.launch { preferences.setTheme(value) }
-    fun dew(value: Boolean) = viewModelScope.launch { preferences.setDew(value) }
     fun motion(value: String) = viewModelScope.launch { preferences.setMotion(value) }
     fun haptics(value: Boolean) = viewModelScope.launch { preferences.setHaptics(value) }
     fun budget(value: Long) = viewModelScope.launch { preferences.setBudget(value) }

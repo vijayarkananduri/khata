@@ -27,7 +27,6 @@ data class UserSettings(
     val language: String = "te",
     val romanScript: Boolean = false,
     val themeMode: String = "SYSTEM",
-    val dewSurface: Boolean = false,
     val reduceMotion: String = "FOLLOW_SYSTEM",
     val hapticsEnabled: Boolean = true,
     val onboardingComplete: Boolean = false,
@@ -43,7 +42,6 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
         val language = stringPreferencesKey("language")
         val roman = booleanPreferencesKey("roman_script")
         val theme = stringPreferencesKey("theme_mode")
-        val dew = booleanPreferencesKey("dew_surface")
         val motion = stringPreferencesKey("reduce_motion")
         val haptics = booleanPreferencesKey("haptics_enabled")
         val onboarding = booleanPreferencesKey("onboarding_complete")
@@ -58,7 +56,7 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
         UserSettings(
             username = p[Keys.username] ?: "", language = p[Keys.language] ?: "te",
             romanScript = p[Keys.roman] ?: false, themeMode = p[Keys.theme] ?: "SYSTEM",
-            dewSurface = p[Keys.dew] ?: false, reduceMotion = p[Keys.motion] ?: "FOLLOW_SYSTEM",
+            reduceMotion = p[Keys.motion] ?: "FOLLOW_SYSTEM",
             hapticsEnabled = p[Keys.haptics] ?: true, onboardingComplete = p[Keys.onboarding] ?: false,
             monthlyBudgetPaise = p[Keys.budget] ?: 0L, compareMode = p[Keys.compare] ?: true,
             nudgesEnabled = p[Keys.nudges] ?: true
@@ -79,7 +77,6 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
     suspend fun setLanguage(value: String) = store.edit { it[Keys.language] = value }
     suspend fun setRoman(value: Boolean) = store.edit { it[Keys.roman] = value }
     suspend fun setTheme(value: String) = store.edit { it[Keys.theme] = value }
-    suspend fun setDew(value: Boolean) = store.edit { it[Keys.dew] = value }
     suspend fun setMotion(value: String) = store.edit { it[Keys.motion] = value }
     suspend fun setHaptics(value: Boolean) = store.edit { it[Keys.haptics] = value }
     suspend fun setBudget(value: Long) = store.edit { it[Keys.budget] = value }

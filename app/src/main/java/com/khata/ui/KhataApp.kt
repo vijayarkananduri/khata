@@ -40,7 +40,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -61,6 +60,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationManagerCompat
 import com.khata.data.db.AccountEntity
 import com.khata.data.db.TransactionEntity
+import com.khata.domain.stats.SpendPeriod
+import com.khata.domain.stats.SpendPeriodRanges
 import com.khata.data.prefs.UserSettings
 import com.khata.domain.categorizer.KhataCategories
 import com.khata.domain.quotes.InAppQuote
@@ -90,12 +91,10 @@ fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
         LaunchedEffect(Unit) { delay(1500); splash = false }
         Box(Modifier.fillMaxSize()) {
             if (!settings.onboardingComplete) OnboardingScreen(onFinish = viewModel::finishOnboarding) else MainShell(viewModel, settings)
-            if (splash) {
-                val quote = splashQuote
+            if (splash && splashQuote.isNotBlank()) {
                 Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("KHATA", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
-                    Spacer(Modifier.height(28.dp)); Text(quote, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
-                    Spacer(Modifier.height(10.dp)); Text("Your money, a little clearer.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(28.dp)); Text(splashQuote, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 30.sp, lineHeight = 38.sp, color = MaterialTheme.colorScheme.onBackground, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
         }
@@ -183,12 +182,10 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
     var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedTransaction by remember { mutableStateOf<TransactionEntity?>(null) }
     val context = LocalContext.current
-    val dew = LocalLiquidGlass.current
 
     Box(Modifier.fillMaxSize()) {
-        LiquidGlassBackdrop()
         Scaffold(
-            containerColor = if (dew) Color.Transparent else MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.background,
             floatingActionButton = {
                 if (!showReview && selectedCategory == null) {
                     FloatingActionButton(onClick = {
@@ -235,10 +232,9 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
 @Composable
 private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabled: Boolean, onSelect: (String) -> Unit) {
     val context = LocalContext.current
-    val dew = LocalLiquidGlass.current
     Surface(
         modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 8.dp).height(68.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = .18f),
+        color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(28.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = .07f)),
@@ -282,159 +278,150 @@ private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabl
 }
 
 @Composable
-private fun LiquidGlassBackdrop() {
-    val dark = MaterialTheme.colorScheme.background == DarkBackground
-    val blurModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Modifier.blur(40.dp) else Modifier
-    Box(Modifier.fillMaxSize()) {
-        Box(Modifier.offset(x = (-70).dp, y = 80.dp).size(230.dp).background(if (dark) DarkTide.copy(alpha = .18f) else Tide.copy(alpha = .12f), CircleShape).then(blurModifier))
-        Box(Modifier.align(Alignment.TopEnd).offset(x = 90.dp, y = 260.dp).size(240.dp).background(if (dark) DarkSaffron.copy(alpha = .12f) else Saffron.copy(alpha = .12f), CircleShape).then(blurModifier))
-        Box(Modifier.align(Alignment.BottomCenter).offset(y = 100.dp).size(250.dp).background(if (dark) DarkEmber.copy(alpha = .12f) else Ember.copy(alpha = .10f), CircleShape).then(blurModifier))
-    }
-}
-
-@Composable
 private fun HomeScreen(
     transactions: List<TransactionEntity>, settings: UserSettings, reviewCount: Int,
     onReview: () -> Unit, onSearch: () -> Unit, onCategory: (String) -> Unit,
     onTransaction: (TransactionEntity) -> Unit, onCompareMode: (Boolean) -> Unit
 ) {
     val reduceMotion = shouldReduceMotion(settings.reduceMotion)
-    val dew = LocalLiquidGlass.current
     val today = LocalDate.now()
-    val monthStart = today.withDayOfMonth(1)
-    val lastMonth = today.minusMonths(1)
-    val lastDays = minOf(today.dayOfMonth, lastMonth.lengthOfMonth())
-    val currentSpend = netSpend(transactions.filter { (it.type == "EXPENSE" || it.type == "REFUND") && runCatching { LocalDate.parse(it.date) }.getOrNull()?.let { d -> d.year == today.year && d.month == today.month && d.dayOfMonth <= today.dayOfMonth } == true })
-    val previousSpend = netSpend(transactions.filter { (it.type == "EXPENSE" || it.type == "REFUND") && runCatching { LocalDate.parse(it.date) }.getOrNull()?.let { d -> d.year == lastMonth.year && d.month == lastMonth.month && d.dayOfMonth <= lastDays } == true })
-    val monthTransactions = transactions.filter { it.date >= monthStart.toString() && it.date <= today.toString() && it.type == "EXPENSE" }
-    val top = monthTransactions.groupBy { it.categoryId }.mapValues { (_, list) -> list.sumOf { it.amountPaise } }.entries.sortedByDescending { it.value }.take(3)
-    val monthName = today.format(DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH))
+    var period by rememberSaveable { mutableStateOf("MONTH") }
+    val selectedPeriod = SpendPeriod.fromKey(period)
+    val currentRange = SpendPeriodRanges.current(selectedPeriod, today)
+    val previousRange = SpendPeriodRanges.previous(selectedPeriod, today)
+    val periodLabel = selectedPeriod.label
+    val previousLabel = when (selectedPeriod) { SpendPeriod.DAY -> "previous day"; SpendPeriod.WEEK -> "previous 7 days"; SpendPeriod.MONTH -> "previous month" }
+    val qualifying = transactions.filter { it.type == "EXPENSE" || it.type == "REFUND" }
+    val periodTransactions = qualifying.filter { currentRange.contains(it.date) }
+    val currentSpend = netSpend(periodTransactions)
+    val previousSpend = netSpend(qualifying.filter { previousRange.contains(it.date) })
+    val top = periodTransactions.filter { it.type == "EXPENSE" }.groupBy { it.categoryId }
+        .mapValues { (_, list) -> list.sumOf { it.amountPaise } }.entries.sortedByDescending { it.value }.take(3)
     val quoteRepo = rememberQuoteRepo()
     val trigger = when {
         transactions.isEmpty() -> "EMPTY_STATE"
-        settings.monthlyBudgetPaise > 0 && currentSpend > settings.monthlyBudgetPaise -> "OVERSPEND"
+        period == "MONTH" && settings.monthlyBudgetPaise > 0 && currentSpend > settings.monthlyBudgetPaise -> "OVERSPEND"
         previousSpend > 0 && currentSpend > previousSpend * 1.05 -> "OVERSPEND"
         previousSpend > 0 && currentSpend < previousSpend * 0.95 -> "ON_TRACK"
-        else -> ""
+        else -> "DAILY_NOTE"
     }
-    val quote = remember(settings.language, settings.romanScript, trigger, today.dayOfYear) { quoteRepo.forTrigger(settings.language, trigger.ifBlank { "DAILY_NOTE" }, settings.romanScript) }
-    var quoteVisible by remember(quote?.text) { mutableStateOf(quote != null) }
-    LaunchedEffect(quote?.text) { quoteVisible = quote != null }
-    val hour = today.let { java.time.LocalTime.now().hour }
+    val quote = remember(settings.language, settings.romanScript, trigger, today.toString(), period) {
+        quoteRepo.forTrigger(settings.language, trigger, settings.romanScript)
+    }
+    val hour = java.time.LocalTime.now().hour
     val greeting = when (hour) { in 5..11 -> "Good morning,"; in 12..16 -> "Good afternoon,"; in 17..20 -> "Good evening,"; else -> "Good night," }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
-                Text(greeting, fontFamily = CaveatFamily, fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
+                Text(greeting, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 27.sp, color = MaterialTheme.colorScheme.primary)
                 Text("@${settings.username.ifBlank { "there" }}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onSearch, modifier = Modifier.size(48.dp)) { Icon(Icons.Outlined.Search, contentDescription = "Search transactions") }
         }
-        AnimatedVisibility(quoteVisible && quote != null) { quote?.let { QuoteBanner(it) { quoteVisible = false } } }
-        Spacer(Modifier.height(16.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            FilterChip(selected = !settings.compareMode, onClick = { onCompareMode(false) }, label = { Text("Budget") })
-            Spacer(Modifier.width(8.dp))
-            FilterChip(selected = settings.compareMode, onClick = { onCompareMode(true) }, label = { Text("Compare") })
+        Spacer(Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("DAY" to "Daily", "WEEK" to "Weekly", "MONTH" to "Monthly").forEach { (key, label) ->
+                FilterChip(selected = period == key, onClick = { period = key }, label = { Text(label) })
+            }
         }
-        val budgetMode = !settings.compareMode && settings.monthlyBudgetPaise > 0
+        quote?.let { QuoteBanner(it.text) }
+        Spacer(Modifier.height(10.dp))
+        if (period == "MONTH") {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                FilterChip(selected = !settings.compareMode, onClick = { onCompareMode(false) }, label = { Text("Budget") })
+                Spacer(Modifier.width(8.dp))
+                FilterChip(selected = settings.compareMode, onClick = { onCompareMode(true) }, label = { Text("Compare") })
+            }
+        }
+        val budgetMode = period == "MONTH" && !settings.compareMode && settings.monthlyBudgetPaise > 0
         val canShow = budgetMode || previousSpend > 0 || currentSpend > 0
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(4.dp))
         if (canShow) {
             val fraction = if (budgetMode) (currentSpend.toFloat() / settings.monthlyBudgetPaise.coerceAtLeast(1)).coerceIn(0f, 1f)
             else if (previousSpend == 0L && currentSpend > 0L) 1f else if (maxOf(currentSpend, previousSpend) == 0L) 0f else (minOf(currentSpend, previousSpend).toFloat() / maxOf(currentSpend, previousSpend)).coerceIn(0f, 1f)
-            val ringColor = if (budgetMode) when { fraction < .75f -> MaterialTheme.colorScheme.secondary; fraction < 1f -> MaterialTheme.colorScheme.tertiary; else -> MaterialTheme.colorScheme.primary }
+            val ringColor = if (budgetMode) when { fraction < .75f -> MaterialTheme.colorScheme.secondary; fraction < 1f -> MaterialTheme.colorScheme.tertiary; else -> MaterialTheme.colorScheme.error }
             else when { previousSpend > 0 && currentSpend > previousSpend * 1.5 -> MaterialTheme.colorScheme.error; currentSpend < previousSpend * .95 -> MaterialTheme.colorScheme.secondary; currentSpend > previousSpend * 1.05 -> MaterialTheme.colorScheme.primary; else -> MaterialTheme.colorScheme.tertiary }
             val caption = when {
                 budgetMode -> "${(currentSpend * 100 / settings.monthlyBudgetPaise.coerceAtLeast(1)).coerceAtMost(999)}% of ${money(settings.monthlyBudgetPaise)}"
-                currentSpend == 0L && previousSpend == 0L -> "Add first transaction"
-                currentSpend == 0L -> "${money(previousSpend)} last month — nothing yet this month"
-                previousSpend == 0L -> "First month"
-                currentSpend < previousSpend * .95 -> "${percentLess(currentSpend, previousSpend)}% less than last month"
-                currentSpend <= previousSpend * 1.05 -> "About the same as last month"
-                currentSpend > previousSpend * 1.5 -> "${money(currentSpend - previousSpend)} more — way over last month"
-                else -> "${percentMore(currentSpend, previousSpend)}% more than last month"
+                currentSpend == 0L && previousSpend == 0L -> "Add your first transaction"
+                currentSpend == 0L -> "No spending ${periodLabel.lowercase()} yet"
+                previousSpend == 0L -> "Your first recorded ${periodLabel.lowercase()}"
+                currentSpend < previousSpend * .95 -> "${percentLess(currentSpend, previousSpend)}% less than the $previousLabel"
+                currentSpend <= previousSpend * 1.05 -> "About the same as the $previousLabel"
+                currentSpend > previousSpend * 1.5 -> "${money(currentSpend - previousSpend)} more than the $previousLabel"
+                else -> "${percentMore(currentSpend, previousSpend)}% more than the $previousLabel"
             }
-            RingCard(currentSpend, fraction, ringColor, caption, budgetMode, monthName, lastDays, reduceMotion)
+            RingCard(currentSpend, fraction, ringColor, caption, budgetMode, periodLabel, previousLabel, reduceMotion)
         } else {
-            Text("First month", modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 28.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("Add your first transaction to see your spending ring.", modifier = Modifier.align(Alignment.CenterHorizontally), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Nothing recorded ${periodLabel.lowercase()} yet.", modifier = Modifier.fillMaxWidth().padding(vertical = 26.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         if (reviewCount > 0) {
             Spacer(Modifier.height(12.dp))
-            Surface(onClick = onReview, color = MaterialTheme.colorScheme.tertiary.copy(alpha = .20f), shape = RoundedCornerShape(16.dp)) {
+            Surface(onClick = onReview, color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = RoundedCornerShape(18.dp), shadowElevation = 2.dp) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.WarningAmber, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
-                    Spacer(Modifier.width(8.dp)); Text("$reviewCount to review", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
-                    Spacer(Modifier.weight(1f)); Icon(Icons.Outlined.ChevronRight, contentDescription = "Open review queue")
+                    Icon(Icons.Outlined.WarningAmber, contentDescription = null); Spacer(Modifier.width(8.dp))
+                    Text("$reviewCount to review", fontWeight = FontWeight.Medium); Spacer(Modifier.weight(1f)); Icon(Icons.Outlined.ChevronRight, contentDescription = "Open review queue")
                 }
             }
         }
         if (settings.nudgesEnabled) {
-            val dueNudge = NudgeCadence.due(transactions, today).firstOrNull()
-            dueNudge?.let { nudge ->
+            NudgeCadence.due(transactions, today).firstOrNull()?.let { nudge ->
                 Spacer(Modifier.height(12.dp))
-                Surface(color = MaterialTheme.colorScheme.secondary.copy(alpha = .13f), shape = RoundedCornerShape(18.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = .24f))) {
+                Surface(color = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer, shape = RoundedCornerShape(20.dp), shadowElevation = 2.dp) {
                     Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.NotificationsActive, null, tint = MaterialTheme.colorScheme.secondary); Spacer(Modifier.width(10.dp))
-                        Column { Text("A little heads-up", fontWeight = FontWeight.SemiBold); Text("${nudge.item}: based on your usual ${nudge.intervalDays}-day rhythm, you may be running low. Check before you buy.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp) }
+                        Icon(Icons.Outlined.NotificationsActive, null); Spacer(Modifier.width(10.dp))
+                        Column { Text("A little heads-up", fontWeight = FontWeight.SemiBold); Text("${nudge.item}: your usual rhythm is about ${nudge.intervalDays} days. You may be running low.", fontSize = 13.sp) }
                     }
                 }
             }
         }
         Spacer(Modifier.height(18.dp))
-        SectionTitle("Top categories · $monthName")
+        SectionTitle("Top categories · ${periodLabel.lowercase()}")
         if (top.isEmpty()) Text("Your category breakdown will appear here.", modifier = Modifier.padding(vertical = 14.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val total = periodTransactions.filter { it.type == "EXPENSE" }.sumOf { it.amountPaise }.coerceAtLeast(1)
             top.forEach { entry ->
                 val label = KhataCategories.names[entry.key] ?: entry.key
-                val total = monthTransactions.sumOf { it.amountPaise }.coerceAtLeast(1)
                 CategoryCard(entry.key, label, entry.value, (entry.value * 100 / total).toInt(), Modifier.weight(1f)) { onCategory(entry.key) }
             }
         }
-        Spacer(Modifier.height(22.dp))
-        SectionTitle("Recent")
-        if (transactions.isEmpty()) {
-            Text("No transactions yet. Add one when you're ready.", modifier = Modifier.padding(vertical = 18.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else {
-            transactions.take(5).forEach { TransactionRow(it, onClick = { onTransaction(it) }) }
-        }
+        Spacer(Modifier.height(22.dp)); SectionTitle("Recent")
+        if (transactions.isEmpty()) Text("No transactions yet. Add one when you're ready.", modifier = Modifier.padding(vertical = 18.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        else transactions.take(5).forEach { TransactionRow(it, onClick = { onTransaction(it) }) }
         Spacer(Modifier.height(90.dp))
     }
 }
 
 @Composable
-private fun RingCard(amount: Long, fraction: Float, color: Color, caption: String, budgetMode: Boolean, monthName: String, days: Int, reduceMotion: Boolean) {
+private fun RingCard(amount: Long, fraction: Float, color: Color, caption: String, budgetMode: Boolean, periodLabel: String, previousLabel: String, reduceMotion: Boolean) {
     val animated by animateFloatAsState(targetValue = fraction, animationSpec = if (reduceMotion) snap() else tween(720), label = "ring")
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
-    Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.size(236.dp), contentAlignment = Alignment.Center) {
-            Canvas(Modifier.fillMaxSize()) {
-                val stroke = 14.dp.toPx()
-                drawArc(color = trackColor, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = Stroke(stroke, cap = StrokeCap.Round))
-                drawArc(color = color, startAngle = -90f, sweepAngle = 360f * animated, useCenter = false, style = Stroke(stroke, cap = StrokeCap.Round))
+    Surface(Modifier.fillMaxWidth().padding(vertical = 8.dp).animateContentSize(), color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface, shape = RoundedCornerShape(28.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = .65f)), shadowElevation = 5.dp) {
+        Column(Modifier.padding(horizontal = 18.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(214.dp), contentAlignment = Alignment.Center) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val stroke = 15.dp.toPx()
+                    drawArc(color = trackColor, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = Stroke(stroke, cap = StrokeCap.Round))
+                    drawArc(color = color, startAngle = -90f, sweepAngle = 360f * animated, useCenter = false, style = Stroke(stroke, cap = StrokeCap.Round))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(money(amount), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
+                    Text(if (budgetMode) "spent this month" else periodLabel.lowercase(), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(money(amount), fontSize = 30.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
-                Text(if (budgetMode) "spent this month" else "this month", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            Text(caption, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 22.sp, lineHeight = 27.sp, color = color, modifier = Modifier.padding(top = 6.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            if (!budgetMode && amount > 0) Text("Compared with the $previousLabel", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
         }
-        Text(caption, fontFamily = CaveatFamily, fontSize = 19.sp, color = color, modifier = Modifier.padding(top = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-        if (!budgetMode && amount > 0) Text("vs same $days days last month", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun QuoteBanner(quote: InAppQuote, onDismiss: () -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .65f), shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
-        Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 6.dp), verticalAlignment = Alignment.Top) {
-            Column(Modifier.weight(1f)) {
-                Text(quote.text, fontFamily = CaveatFamily, fontSize = 17.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurface)
-                Text(quote.subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 3.dp))
-            }
-            IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Close, "Dismiss quote", modifier = Modifier.size(18.dp)) }
-        }
+private fun QuoteBanner(text: String) {
+    Surface(color = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth().padding(top = 12.dp), shadowElevation = 3.dp) {
+        Text(text, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 25.sp, lineHeight = 30.sp, maxLines = 3, modifier = Modifier.padding(horizontal = 18.dp, vertical = 13.dp))
     }
 }
 
@@ -663,8 +650,8 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Read in English letters", Modifier.weight(1f)); Switch(settings.romanScript, { viewModel.roman(it) }) }
         Spacer(Modifier.height(12.dp)); SectionTitle("Appearance")
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
-        Text("Liquid Glass · always on", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark", "WALLPAPER" to "Wallpaper").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
+        Text(if (settings.themeMode == "WALLPAPER") "Use Android wallpaper colors and follow your system light/dark mode." else "Solid surfaces · soft depth · clear contrast", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Reduce motion", Modifier.weight(1f)); listOf("FOLLOW_SYSTEM", "ON", "OFF").forEach { value -> FilterChip(selected = settings.reduceMotion == value, onClick = { viewModel.motion(value) }, label = { Text(when (value) { "FOLLOW_SYSTEM" -> "Auto"; else -> value.lowercase().replaceFirstChar { it.uppercase() } }) }) } }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Haptics", Modifier.weight(1f)); Switch(settings.hapticsEnabled, { viewModel.haptics(it) }) }
         Spacer(Modifier.height(10.dp)); SectionTitle("Smart nudges")
@@ -688,7 +675,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         if (!notificationsEnabled) Text("You can turn alerts off any time in Android Settings.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Spacer(Modifier.height(14.dp)); SectionTitle("Home screen")
         OutlinedButton(onClick = { pinKhataWidget(context) }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) { Icon(Icons.Outlined.Widgets, null); Spacer(Modifier.width(8.dp)); Text("Add Khata spending widget") }
-        Text("Pin today's spending to your launcher. It refreshes after entries and hourly.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        Text("Choose daily, 7-day, or monthly totals on the launcher widget. It refreshes after entries and hourly.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Spacer(Modifier.height(12.dp)); SectionTitle("Accounts")
         if (accounts.isEmpty()) Text("Loading accounts…", color = MaterialTheme.colorScheme.onSurfaceVariant)
         accounts.forEach { account ->
@@ -715,7 +702,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }, modifier = Modifier.fillMaxWidth()) { Text("Export CSV · ${transactions.size} transactions") }
         OutlinedButton(onClick = { toastMessage = "CSV import is planned; your local data has not changed." }, modifier = Modifier.fillMaxWidth()) { Text("Import CSV") }
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
-        Text("Khata 1.3.0 · Money, with a little more character.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Khata 1.4.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Your transaction data stays on this device.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))
