@@ -44,7 +44,7 @@ val GoogleSansFamily = FontFamily(
     Font(R.font.google_sans_700, FontWeight.Bold)
 )
 val CaveatFamily = FontFamily(Font(R.font.caveat_variable, FontWeight.Normal), Font(R.font.caveat_variable, FontWeight.Medium))
-val LocalDewSurface = staticCompositionLocalOf { false }
+val LocalLiquidGlass = staticCompositionLocalOf { true }
 
 private val BaseTypography = Typography()
 private val KhataTypography = BaseTypography.copy(
@@ -66,7 +66,7 @@ private val KhataTypography = BaseTypography.copy(
 )
 
 @Composable
-fun KhataTheme(themeMode: String = "SYSTEM", dewSurface: Boolean = false, content: @Composable () -> Unit) {
+fun KhataTheme(themeMode: String = "SYSTEM", content: @Composable () -> Unit) {
     val dark = when (themeMode) {
         "DARK" -> true
         "LIGHT" -> false
@@ -83,11 +83,11 @@ fun KhataTheme(themeMode: String = "SYSTEM", dewSurface: Boolean = false, conten
         surface = LightSurface, onSurface = LightInk, onBackground = LightInk,
         surfaceVariant = LightAlt, onSurfaceVariant = LightMuted, outline = LightBorder
     )
-    val colors = if (dewSurface) base.copy(
-        surface = base.surface.copy(alpha = 0f),
-        surfaceVariant = base.surfaceVariant.copy(alpha = 0f)
-    ) else base
-    CompositionLocalProvider(LocalDewSurface provides dewSurface) {
+    val colors = base.copy(
+        surface = base.surface.copy(alpha = .10f),
+        surfaceVariant = base.surfaceVariant.copy(alpha = .06f)
+    )
+    CompositionLocalProvider(LocalLiquidGlass provides true) {
         MaterialTheme(colorScheme = colors, typography = KhataTypography, content = content)
     }
 }

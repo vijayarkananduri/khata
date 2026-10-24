@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_card"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_liquid_glass"
+    android:padding="18dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="KHATA · TODAY" android:textColor="#F7F2EA" android:textSize="11sp" android:letterSpacing="0.14" android:textStyle="bold"/>
+        <TextView android:id="@+id/widget_total" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:text="₹0" android:textColor="#FFFFFF" android:textSize="30sp" android:textStyle="bold"/>
+        <TextView android:id="@+id/widget_caption" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="1dp" android:text="spent today · tap to open" android:textColor="#E5FFFFFF" android:textSize="12sp"/>
+    </LinearLayout>
+</FrameLayout>

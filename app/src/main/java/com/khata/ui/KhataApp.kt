@@ -68,6 +68,10 @@ import com.khata.domain.quotes.QuoteRepository
 import com.khata.notifications.NotificationHelper
 import com.khata.notifications.NudgeCadence
 import com.khata.ui.theme.*
+import com.khata.widget.KhataHomeWidgetProvider
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.widget.Toast
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.YearMonth
@@ -79,13 +83,15 @@ import kotlinx.coroutines.delay
 @Composable
 fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    KhataTheme(settings.themeMode, settings.dewSurface) {
+    val quoteRepo = rememberQuoteRepo()
+    val splashQuote = remember(settings.language, settings.romanScript) { quoteRepo.splashText(settings.language, settings.romanScript) }
+    KhataTheme(settings.themeMode) {
         var splash by remember { mutableStateOf(true) }
         LaunchedEffect(Unit) { delay(1500); splash = false }
         Box(Modifier.fillMaxSize()) {
             if (!settings.onboardingComplete) OnboardingScreen(onFinish = viewModel::finishOnboarding) else MainShell(viewModel, settings)
             if (splash) {
-                val quote = rememberQuoteRepo().splashText(settings.language, settings.romanScript)
+                val quote = splashQuote
                 Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("KHATA", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
                     Spacer(Modifier.height(28.dp)); Text(quote, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
@@ -177,10 +183,10 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
     var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedTransaction by remember { mutableStateOf<TransactionEntity?>(null) }
     val context = LocalContext.current
-    val dew = LocalDewSurface.current
+    val dew = LocalLiquidGlass.current
 
     Box(Modifier.fillMaxSize()) {
-        if (dew) DewBackdrop()
+        LiquidGlassBackdrop()
         Scaffold(
             containerColor = if (dew) Color.Transparent else MaterialTheme.colorScheme.background,
             floatingActionButton = {
@@ -229,10 +235,10 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
 @Composable
 private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabled: Boolean, onSelect: (String) -> Unit) {
     val context = LocalContext.current
-    val dew = LocalDewSurface.current
+    val dew = LocalLiquidGlass.current
     Surface(
         modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 8.dp).height(68.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = if (dew) 0f else .96f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = .18f),
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(28.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = .07f)),
@@ -276,7 +282,7 @@ private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabl
 }
 
 @Composable
-private fun DewBackdrop() {
+private fun LiquidGlassBackdrop() {
     val dark = MaterialTheme.colorScheme.background == DarkBackground
     val blurModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Modifier.blur(40.dp) else Modifier
     Box(Modifier.fillMaxSize()) {
@@ -293,7 +299,7 @@ private fun HomeScreen(
     onTransaction: (TransactionEntity) -> Unit, onCompareMode: (Boolean) -> Unit
 ) {
     val reduceMotion = shouldReduceMotion(settings.reduceMotion)
-    val dew = LocalDewSurface.current
+    val dew = LocalLiquidGlass.current
     val today = LocalDate.now()
     val monthStart = today.withDayOfMonth(1)
     val lastMonth = today.minusMonths(1)
@@ -369,7 +375,7 @@ private fun HomeScreen(
             val dueNudge = NudgeCadence.due(transactions, today).firstOrNull()
             dueNudge?.let { nudge ->
                 Spacer(Modifier.height(12.dp))
-                Surface(color = MaterialTheme.colorScheme.secondary.copy(alpha = if (dew) .05f else .14f), shape = RoundedCornerShape(18.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = .24f))) {
+                Surface(color = MaterialTheme.colorScheme.secondary.copy(alpha = .13f), shape = RoundedCornerShape(18.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = .24f))) {
                     Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.NotificationsActive, null, tint = MaterialTheme.colorScheme.secondary); Spacer(Modifier.width(10.dp))
                         Column { Text("A little heads-up", fontWeight = FontWeight.SemiBold); Text("${nudge.item}: based on your usual ${nudge.intervalDays}-day rhythm, you may be running low. Check before you buy.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp) }
@@ -640,7 +646,6 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
     var username by remember(settings.username) { mutableStateOf(settings.username) }
     var budget by remember(settings.monthlyBudgetPaise) { mutableStateOf(if (settings.monthlyBudgetPaise > 0) (settings.monthlyBudgetPaise / 100.0).toString() else "") }
     var clearConfirm by remember { mutableStateOf(false) }
-    var addAccount by remember { mutableStateOf(false) }
     var notificationsEnabled by remember { mutableStateOf(NotificationHelper.canNotify(context)) }
     var toastMessage by remember { mutableStateOf("") }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -659,8 +664,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Read in English letters", Modifier.weight(1f)); Switch(settings.romanScript, { viewModel.roman(it) }) }
         Spacer(Modifier.height(12.dp)); SectionTitle("Appearance")
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
-        Row(verticalAlignment = Alignment.CenterVertically) { Text("Dew surface", Modifier.weight(1f)); Switch(settings.dewSurface, { viewModel.dew(it) }) }
-        Text("Dew uses clear, translucent glass; turn it off for solid surfaces.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        Text("Liquid Glass · always on", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Reduce motion", Modifier.weight(1f)); listOf("FOLLOW_SYSTEM", "ON", "OFF").forEach { value -> FilterChip(selected = settings.reduceMotion == value, onClick = { viewModel.motion(value) }, label = { Text(when (value) { "FOLLOW_SYSTEM" -> "Auto"; else -> value.lowercase().replaceFirstChar { it.uppercase() } }) }) } }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Haptics", Modifier.weight(1f)); Switch(settings.hapticsEnabled, { viewModel.haptics(it) }) }
         Spacer(Modifier.height(10.dp)); SectionTitle("Smart nudges")
@@ -682,6 +686,9 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
             Spacer(Modifier.width(8.dp)); Text(if (notificationsEnabled) "Alerts enabled · send test" else "Enable budget alerts")
         }
         if (!notificationsEnabled) Text("You can turn alerts off any time in Android Settings.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        Spacer(Modifier.height(14.dp)); SectionTitle("Home screen")
+        OutlinedButton(onClick = { pinKhataWidget(context) }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) { Icon(Icons.Outlined.Widgets, null); Spacer(Modifier.width(8.dp)); Text("Add Khata spending widget") }
+        Text("Pin today's spending to your launcher. It refreshes after entries and hourly.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Spacer(Modifier.height(12.dp)); SectionTitle("Accounts")
         if (accounts.isEmpty()) Text("Loading accounts…", color = MaterialTheme.colorScheme.onSurfaceVariant)
         accounts.forEach { account ->
@@ -696,7 +703,6 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
                 }
             }
         }
-        Button(onClick = { addAccount = true }, modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.width(8.dp)); Text("Add a bank or cash account") }
         if (toastMessage.isNotBlank()) { Text(toastMessage, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)); TextButton(onClick = { toastMessage = "" }) { Text("Dismiss") } }
         Spacer(Modifier.height(16.dp)); SectionTitle("Data")
         OutlinedButton(onClick = {
@@ -709,46 +715,14 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }, modifier = Modifier.fillMaxWidth()) { Text("Export CSV · ${transactions.size} transactions") }
         OutlinedButton(onClick = { toastMessage = "CSV import is planned; your local data has not changed." }, modifier = Modifier.fillMaxWidth()) { Text("Import CSV") }
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
-        Text("Khata 1.1.0 · Every rupee, in its place.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Khata 1.3.0 · Money, with a little more character.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Your transaction data stays on this device.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))
     }
-    if (addAccount) AddAccountDialog(onDismiss = { addAccount = false }, onSave = { name, institution, type, balancePaise -> viewModel.addAccount(name, institution, type, balancePaise); addAccount = false })
     if (clearConfirm) AlertDialog(onDismissRequest = { clearConfirm = false }, title = { Text("Clear all data?") }, text = { Text("This permanently deletes all transactions from this device. Settings and categories stay.") }, confirmButton = { TextButton(onClick = { onClear(); clearConfirm = false }) { Text("Delete", color = MaterialTheme.colorScheme.error) } }, dismissButton = { TextButton(onClick = { clearConfirm = false }) { Text("Cancel") } })
 }
 
-@Composable
-private fun AddAccountDialog(onDismiss: () -> Unit, onSave: (String, String, String, Long) -> Unit) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var institution by rememberSaveable { mutableStateOf("") }
-    var balance by rememberSaveable { mutableStateOf("") }
-    var type by rememberSaveable { mutableStateOf("BANK") }
-    val types = listOf("BANK" to "Bank", "CASH" to "Cash", "WALLET" to "Wallet")
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add an account") },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(name, { name = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Account name") }, placeholder = { Text("e.g. Everyday savings") }, singleLine = true)
-                OutlinedTextField(institution, { institution = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Bank or institution") }, placeholder = { Text("Optional") }, singleLine = true)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    types.forEach { (key, label) -> FilterChip(selected = type == key, onClick = { type = key }, label = { Text(label) }) }
-                }
-                OutlinedTextField(balance, { balance = it.filter { c -> c.isDigit() || c == '.' } }, modifier = Modifier.fillMaxWidth(), label = { Text("Starting balance · optional") }, prefix = { Text("₹") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
-                Text("Khata stores this account locally. Never enter your bank password, PIN, OTP, or full account number.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, lineHeight = 17.sp)
-            }
-        },
-        confirmButton = {
-            Button(enabled = name.isNotBlank(), onClick = {
-                onSave(name.trim(), institution.trim(), type, ((balance.toDoubleOrNull() ?: 0.0) * 100).toLong())
-            }) { Text("Add account") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickAddDialog(accounts: List<AccountEntity>, onDismiss: () -> Unit, onSave: (String, Long, String, LocalDate, String, String?, String) -> Unit) {
     var merchant by rememberSaveable { mutableStateOf("") }
@@ -913,6 +887,15 @@ private fun shouldReduceMotion(mode: String): Boolean {
     if (mode == "OFF") return false
     val context = LocalContext.current
     return runCatching { AndroidSettings.Global.getFloat(context.contentResolver, AndroidSettings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }.getOrDefault(false)
+}
+
+private fun pinKhataWidget(context: android.content.Context) {
+    val manager = AppWidgetManager.getInstance(context)
+    val provider = ComponentName(context, KhataHomeWidgetProvider::class.java)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && manager.isRequestPinAppWidgetSupported) {
+        val accepted = manager.requestPinAppWidget(provider, null, null)
+        if (!accepted) Toast.makeText(context, "Open your launcher's Widgets list to add Khata.", Toast.LENGTH_LONG).show()
+    } else Toast.makeText(context, "Long-press your home screen, then choose Widgets → Khata.", Toast.LENGTH_LONG).show()
 }
 
 @Suppress("DEPRECATION")

@@ -115,6 +115,9 @@ interface KhataDao {
     @Query("SELECT * FROM transactions WHERE type = 'EXPENSE' AND direction = 'DEBIT' AND categoryId IN ('groceries', 'fuel', 'health', 'pet') ORDER BY date DESC LIMIT 500")
     suspend fun nudgePurchases(): List<TransactionEntity>
 
+    @Query("SELECT COALESCE(SUM(amountPaise), 0) FROM transactions WHERE date = :today AND type = 'EXPENSE' AND direction = 'DEBIT'")
+    suspend fun todayExpenseTotal(today: String): Long
+
     @Query("SELECT * FROM transactions WHERE date BETWEEN :from AND :to ORDER BY date DESC")
     suspend fun transactionsBetween(from: String, to: String): List<TransactionEntity>
 }

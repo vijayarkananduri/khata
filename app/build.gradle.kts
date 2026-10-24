@@ -6,6 +6,12 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+val releaseStorePath = System.getenv("KEYSTORE_PATH")
+val releaseStorePassword = System.getenv("KEYSTORE_PASSWORD")
+val releaseKeyAlias = System.getenv("KEY_ALIAS")
+val releaseKeyPassword = System.getenv("KEY_PASSWORD")
+val hasReleaseSigning = listOf(releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.khata"
     compileSdk = 35
@@ -14,12 +20,28 @@ android {
         applicationId = "com.khata"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.1.0"
+        versionCode = 5
+        versionName = "1.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseStorePath!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("release")
+        }
+    }
     buildFeatures { compose = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

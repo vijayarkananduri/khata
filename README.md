@@ -1,31 +1,31 @@
 # Khata
 
-**A quieter, more intentional way to stay close to your money.**
+**Money tracking, with a little more character.**
 
-Khata is a premium-feeling, offline-first Android money companion: clear daily spending, thoughtful quotes, and gentle reminders for the essentials you tend to restock. No ads. No analytics. No bank passwords. Your records stay on your device.
+Khata is an offline-first Android finance companion with a polished liquid-glass interface, witty money-movie quotes, and a home-screen glance at today's spending. Your records stay on your device. No ads, analytics, or telemetry.
 
-## A little more clarity, every day
+## Highlights
 
-- **Know where you stand.** A compact spending ring, budget comparison, category breakdown, and recent activity make the month easier to read.
-- **Capture the moment.** Add income or expenses to bank, cash, or wallet accounts, with date, category, and notes.
-- **Let patterns help.** Khata learns from repeat purchases in groceries, fuel, health and pet essentials. When a purchase rhythm is established, an optional local reminder can suggest checking whether you are running low.
-- **Make it feel yours.** Choose a warm light or deep dark palette, fully translucent Dew glass, reduced motion, haptics, and one of five supported languages. Context-aware and splash quotes keep the experience human.
-- **Keep control.** Export a CSV, turn nudges on or off, and keep financial data local. Android cloud backup is disabled.
+- **See today at a glance.** Pin the Khata home-screen widget to keep today's recorded expenses close. It refreshes after a new entry and periodically in the background.
+- **Get a useful nudge.** Optional local restock reminders infer a rough rhythm from at least two repeated grocery, fuel, health or pet-essential purchases. Turn them off in Settings at any time.
+- **Enjoy a little money humor.** Film-inspired and meme-style quotes shuffle across splash and Home. The app avoids recent repeats for a week when enough alternatives exist.
+- **Keep the essentials simple.** Add income and expenses, choose from your existing saved accounts, review categories, compare spending and export CSV. Bank/cash account creation is no longer offered; existing saved accounts and records remain intact.
+- **Make the glass your default.** A permanent, high-transparency liquid-glass treatment, warm light or deep dark palette, haptics and reduced-motion preferences.
 
-## A note about smart nudges
+## Privacy
 
-Nudges infer a rough restock interval from repeat expense entries for the same merchant and supported category. They need at least two dated purchases to learn a pattern, run locally once daily, and require Android notification permission for background alerts. Estimates are suggestions—not inventory tracking—and can be turned off in Settings.
+Transaction data and quote history are kept locally. Android cloud backup is disabled. There is no analytics, advertising, or telemetry SDK. Restock reminders require Android notification permission.
 
-## What Khata does not pretend to do
+## Build
 
-Khata currently supports manually entered accounts; live Indian Account Aggregator connections are not included. A secure integration needs an eligible FIU partner and its provider onboarding, consent and callback services. Khata will not imitate a connected-bank state or collect bank credentials.
+Requires JDK 17 and Android SDK platform 35/build tools. Run `./gradlew testDebugUnitTest assembleDebug`. GitHub Actions runs these checks for pushes to `main`; the debug APK is published as a run artifact.
 
-## Build and try
+GitHub Actions signing can use a user-owned keystore supplied through repository secrets `KEYSTORE_B64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. Do not commit keystores or passwords. Without those secrets, CI's debug APK is for testing only and is not Play Store production-signed.
 
-Requirements: JDK 17 and Android SDK platform 35/build tools. Run `./gradlew testDebugUnitTest assembleDebug`. The installable **debug APK** is `app/build/outputs/apk/debug/app-debug.apk`; it is for testing, not a Play Store production signature.
+## Account linking
 
-Every push to `main` runs unit tests and assembles a debug APK in GitHub Actions. A user-owned production signing key is not configured, so releases are explicitly debug-signed.
+Live Indian Account Aggregator connections are not implemented. A real integration needs an eligible FIU partner and its consent/provider services; Khata does not simulate linked-bank status or collect bank credentials.
 
-## Privacy and licenses
+## License
 
-Transaction and preference data are stored locally; there is no analytics, advertising, or telemetry SDK. Google Sans and Caveat font license copies are in `app/src/main/assets/licenses/`.
+An application license has not yet been selected; the repository remains private pending the owner’s license and publication choice. Bundled font license copies are in `app/src/main/assets/licenses/`.

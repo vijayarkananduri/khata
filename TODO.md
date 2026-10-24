@@ -1,15 +1,10 @@
 # Khata implementation status
-- [x] Native Kotlin + Jetpack Compose app, Ember & Ink design system, onboarding, and four-tab navigation.
-- [x] Offline Room transactions, categories, merchant rules, and manual bank/cash/wallet accounts; v1-to-v2 data migration preserves existing transactions.
-- [x] Quick Add with category, account, optional note, and a date picker supporting today and past dates.
-- [x] Deterministic categorization, review queue, correction learning, duplicate prevention, and transaction detail actions.
-- [x] Home spending/budget comparison, category summary, recent activity, search, calendar, year heatmap, and analysis.
-- [x] Bundled Google Sans and Caveat fonts with SIL Open Font License copies; custom adaptive wallet launcher icon.
-- [x] Compact raised capsule navigation, clear translucent Dew surfaces, direct native tick haptics, and reduced-motion behavior.
-- [x] Local repeat-purchase cadence estimation for grocery, fuel, health and pet expenses; opt-out setting and daily notification worker.
-- [x] Contextual proactive quotes and language-aware quote splash; removed the Account Aggregator mockup/explainer surface.
-- [x] User-triggered Android notification permission and budget-overrun notification; denied permission degrades without blocking finance tracking.
-- [x] CSV export, quote catalog, local-only storage, disabled cloud backup, premium repository introduction, and GitHub Actions unit-test/APK workflow.
-- [ ] Live Account Aggregator sync. This requires an eligible FIU/provider partnership, onboarding, server-side consent callbacks, and provider configuration; the app does not simulate a live link.
-- [ ] CSV import and full custom-category/merchant-rule management screens.
-- [ ] User-owned production signing key and a Play-ready signed release build.
+- [x] Native offline-first finance tracker, local Room data, four-tab Compose UI and account history.
+- [x] Bank/cash account creation controls removed from the UI; existing account records remain available to protect transaction history.
+- [x] Permanent, high-transparency liquid-glass appearance; no Dew/glass preference toggle.
+- [x] Localized meme/movie-inspired money quotes shuffle and avoid recently shown items for seven days when alternatives exist.
+- [x] Home-screen widget shows today's recorded expenses, refreshes hourly and after new entries, and has an in-app pin option for compatible launchers.
+- [x] Optional daily restock reminders, haptics, budget alerts and notification permission handling.
+- [x] GitHub Actions tests and APK workflow.
+- [ ] User-owned production signing key and Play-ready signed APK; repository secrets could not be inspected/set with the currently enabled GitHub token.
+- [ ] Confirm repo visibility/license terms before making the private repository publicly open source.
