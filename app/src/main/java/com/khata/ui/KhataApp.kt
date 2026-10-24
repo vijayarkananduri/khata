@@ -293,6 +293,7 @@ private fun HomeScreen(
     onTransaction: (TransactionEntity) -> Unit, onCompareMode: (Boolean) -> Unit
 ) {
     val reduceMotion = shouldReduceMotion(settings.reduceMotion)
+    val dew = LocalDewSurface.current
     val today = LocalDate.now()
     val monthStart = today.withDayOfMonth(1)
     val lastMonth = today.minusMonths(1)
