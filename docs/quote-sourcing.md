@@ -4,7 +4,7 @@ This file records the source pages checked for the compact in-app quote catalog.
 
 ## Hindi
 
-- Quote: “पैसा तो हर कोई कमा लेता है, लेकिन इज्जत कमाना सबके बस की बात नहीं” — *कभी खुशी कभी गम* (2001). Source page: [NDTV Hindi — Amitabh Bachchan dialogue list](https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024). The article prints the Devanagari line under the film heading. Romanization in the app is phonetic only, not an English translation.
+- Quote: “पैसा तो हर कोई कमा लेता है” (a verbatim short excerpt from the printed line) — *कभी खुशी कभी गम* (2001). Source page: [NDTV Hindi — Amitabh Bachchan dialogue list](https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024). The article prints the Devanagari line under the film heading. Romanization in the app is phonetic only, not an English translation.
 
 ## Telugu
 
