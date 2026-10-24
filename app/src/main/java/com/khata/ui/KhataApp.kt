@@ -723,6 +723,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
     if (clearConfirm) AlertDialog(onDismissRequest = { clearConfirm = false }, title = { Text("Clear all data?") }, text = { Text("This permanently deletes all transactions from this device. Settings and categories stay.") }, confirmButton = { TextButton(onClick = { onClear(); clearConfirm = false }) { Text("Delete", color = MaterialTheme.colorScheme.error) } }, dismissButton = { TextButton(onClick = { clearConfirm = false }) { Text("Cancel") } })
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickAddDialog(accounts: List<AccountEntity>, onDismiss: () -> Unit, onSave: (String, Long, String, LocalDate, String, String?, String) -> Unit) {
     var merchant by rememberSaveable { mutableStateOf("") }
