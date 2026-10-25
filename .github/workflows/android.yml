@@ -22,6 +22,13 @@ jobs:
           java-version: '17'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+      - name: Guard against Haze renderer regressions
+        shell: bash
+        run: |
+          if grep -R -n -i -E 'haze(source|effect|child|state)|rememberhazestate|chrisbanes\.haze' app/src/main/java app/build.gradle.kts; then
+            echo "Haze APIs are disabled because they caused a confirmed renderer crash."
+            exit 1
+          fi
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
       - name: Build debug APK

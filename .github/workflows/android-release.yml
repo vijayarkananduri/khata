@@ -42,6 +42,13 @@ jobs:
           printf '%s' "$KEYSTORE_B64" | base64 --decode > "$key_path"
           echo "KEYSTORE_PATH=$key_path" >> "$GITHUB_ENV"
           chmod 600 "$key_path"
+      - name: Guard against Haze renderer regressions
+        shell: bash
+        run: |
+          if grep -R -n -i -E 'haze(source|effect|child|state)|rememberhazestate|chrisbanes\.haze' app/src/main/java app/build.gradle.kts; then
+            echo "Haze APIs are disabled in 2.0.0 because they caused a confirmed renderer crash."
+            exit 1
+          fi
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
       - name: Assemble owner-signed release APK
@@ -81,9 +88,9 @@ jobs:
             fi
             echo
             echo "### Highlights"
-            echo "- Warm paper and Ember palette with frosted Dew surfaces and raised, responsive navigation."
-            echo "- A focused Home snapshot, larger type, quote rotation, and redesigned daily/weekly/monthly/all-time widgets."
-            echo "- Optional notification permission, tactile controls, category analysis, and local-first records."
+            echo "- Removed the Haze runtime and dependency entirely after reproducing a source/child rendering crash; surfaces retain safe static glass-inspired gradients."
+            echo "- Onboarding now inherits a theme-aware high-contrast foreground in light and dark modes."
+            echo "- Includes daily/weekly/monthly/all-time widgets, quote rotation, optional notifications, and local-first records."
             echo "- See the repository README for the concise feature list."
           } > "$RUNNER_TEMP/release-notes.md"
       - name: Publish or update GitHub release

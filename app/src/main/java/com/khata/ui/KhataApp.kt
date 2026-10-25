@@ -88,20 +88,33 @@ import kotlinx.coroutines.delay
 fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val quoteRepo = rememberQuoteRepo()
-    val splashQuote = remember(settings.language, settings.romanScript) { quoteRepo.splashText(settings.language, settings.romanScript) }
-    val hazeState = rememberKhataHazeState()
+    val splashQuote = remember(settings.language, settings.romanScript) {
+        quoteRepo.splashText(settings.language, settings.romanScript)
+    }
     KhataTheme(settings.themeMode) {
-        CompositionLocalProvider(LocalKhataHazeState provides hazeState) {
-            var splash by remember { mutableStateOf(true) }
-            LaunchedEffect(Unit) { delay(1500); splash = false }
-            Box(Modifier.fillMaxSize()) {
-                DewBackdrop(hazeState)
-                if (!settings.onboardingComplete) OnboardingScreen(onFinish = viewModel::finishOnboarding) else MainShell(viewModel, settings)
-                if (splash && splashQuote.isNotBlank()) {
-                    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Text("KHATA", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
-                        Spacer(Modifier.height(28.dp)); Text(splashQuote, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 30.sp, lineHeight = 38.sp, color = MaterialTheme.colorScheme.onBackground, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    }
+        var splash by remember { mutableStateOf(true) }
+        LaunchedEffect(Unit) { delay(1500); splash = false }
+        Box(Modifier.fillMaxSize()) {
+            DewBackdrop()
+            if (!settings.onboardingComplete) {
+                OnboardingScreen(onFinish = viewModel::finishOnboarding)
+            } else {
+                MainShell(viewModel, settings)
+            }
+            if (splash && splashQuote.isNotBlank()) {
+                Column(
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text("KHATA", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+                    Spacer(Modifier.height(28.dp))
+                    Text(
+                        splashQuote, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold,
+                        fontSize = 30.sp, lineHeight = 38.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
                 }
             }
         }
@@ -739,7 +752,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }, modifier = Modifier.fillMaxWidth()) { Text("Export CSV · ${transactions.size} transactions") }
         OutlinedButton(onClick = { toastMessage = "CSV import is planned; your local data has not changed." }, modifier = Modifier.fillMaxWidth()) { Text("Import CSV") }
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
-        Text("Khata 1.5.1 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Khata 2.0.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Your transaction data stays on this device.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))

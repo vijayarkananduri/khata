@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,28 +30,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
-import dev.chrisbanes.haze.materials.CupertinoMaterials
-
-val LocalKhataHazeState = staticCompositionLocalOf<HazeState> {
-    error("KhataHazeState must be provided by KhataRoot")
-}
 
 @Composable
-fun rememberKhataHazeState(): HazeState = rememberHazeState()
-
-@Composable
-fun DewBackdrop(hazeState: HazeState) {
+fun DewBackdrop() {
     val background = androidx.compose.material3.MaterialTheme.colorScheme.background
     val dark = background.luminance() < .5f
     val glowAlpha = if (dark) 0.10f else 0.11f
     Box(
         Modifier.fillMaxSize()
             .background(background)
-            .hazeSource(state = hazeState, zIndex = 0f)
     ) {
         Box(
             Modifier.align(Alignment.TopEnd)
@@ -83,14 +69,13 @@ fun DewBackdrop(hazeState: HazeState) {
 fun DewSurface(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(26.dp),
-    zIndex: Float = 10f,
+    @Suppress("UNUSED_PARAMETER") zIndex: Float = 10f,
     tone: Color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
     elevation: Dp = 14.dp,
     reduceMotion: Boolean = false,
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val hazeState = LocalKhataHazeState.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -101,7 +86,9 @@ fun DewSurface(
     val dark = androidx.compose.material3.MaterialTheme.colorScheme.background.luminance() < .5f
     val topRim = if (dark) Color.White.copy(alpha = .28f) else Color.White.copy(alpha = .94f)
     val lowerRim = androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = if (dark) .34f else .22f)
-    val tint = tone.copy(alpha = .42f)
+    // Static glass-inspired gradient: intentionally no runtime blur/source graph, so it cannot
+    // trigger Haze's source/child draw recursion on any Android/Compose renderer.
+    val tint = tone.copy(alpha = .94f)
     Box(
         modifier = modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
@@ -114,12 +101,9 @@ fun DewSurface(
                     onClick = onClick
                 ) else Modifier
             )
-            // A Haze source must never contain a Haze child. The backdrop is the sole source;
-            // this surface is only a child, avoiding the source/child draw recursion seen on-device.
-            .hazeEffect(state = hazeState, style = CupertinoMaterials.regular(containerColor = tone))
             .background(
                 Brush.verticalGradient(
-                    listOf(topRim.copy(alpha = .28f), tint, tone.copy(alpha = .22f))
+                    listOf(topRim.copy(alpha = if (dark) .16f else .34f), tint, tone.copy(alpha = .92f))
                 ),
                 shape
             )

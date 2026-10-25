@@ -2,6 +2,8 @@
 
 **Everyday money, in balance.**
 
+Khata 2.0 removes the Haze runtime after a confirmed rendering crash and uses a safer static glass-inspired design with theme-aware onboarding contrast.
+
 Khata is a calm, offline-first companion for tracking daily spending, income, budgets, and money habits.
 
 ## Features
@@ -12,7 +14,7 @@ Khata is a calm, offline-first companion for tracking daily spending, income, bu
 - Set a monthly budget and opt in to budget alerts and gentle restock reminders.
 - Review uncategorized entries; Khata learns your corrections on-device.
 - Use Hindi, Telugu, Tamil, Malayalam, or Kannada, with optional English-letter transliteration.
-- Keep records locally, export a CSV, and use the warm paper-and-Ember Dew design.
+- Keep records locally, export a CSV, and use the warm paper-and-Ember design with static glass-inspired gradients, readable solid surfaces, and no runtime blur engine.
 
 ## Build
 
