@@ -116,6 +116,7 @@ private fun OnboardingScreen(onFinish: (String, String, Boolean, Long) -> Unit) 
     var roman by rememberSaveable { mutableStateOf(false) }
     var budget by rememberSaveable { mutableStateOf("") }
     val languages = listOf("hi" to "हिन्दी · Hindi", "te" to "తెలుగు · Telugu", "ta" to "தமிழ் · Tamil", "ml" to "മലയാളം · Malayalam", "kn" to "ಕನ್ನಡ · Kannada")
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
     Column(
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(horizontal = 28.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.SpaceBetween
@@ -177,6 +178,7 @@ private fun OnboardingScreen(onFinish: (String, String, Boolean, Long) -> Unit) 
             }
             if (step == 3) TextButton(onClick = { budget = ""; step = 4 }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text("Skip budget") }
         }
+    }
     }
 }
 
@@ -737,7 +739,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }, modifier = Modifier.fillMaxWidth()) { Text("Export CSV · ${transactions.size} transactions") }
         OutlinedButton(onClick = { toastMessage = "CSV import is planned; your local data has not changed." }, modifier = Modifier.fillMaxWidth()) { Text("Import CSV") }
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
-        Text("Khata 1.5.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Khata 1.5.1 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Your transaction data stays on this device.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))

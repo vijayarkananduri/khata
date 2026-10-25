@@ -114,7 +114,8 @@ fun DewSurface(
                     onClick = onClick
                 ) else Modifier
             )
-            .hazeSource(state = hazeState, zIndex = zIndex)
+            // A Haze source must never contain a Haze child. The backdrop is the sole source;
+            // this surface is only a child, avoiding the source/child draw recursion seen on-device.
             .hazeEffect(state = hazeState, style = CupertinoMaterials.regular(containerColor = tone))
             .background(
                 Brush.verticalGradient(
