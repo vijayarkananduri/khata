@@ -1,86 +1,100 @@
 <div align="center">
 
-# 📒 Khata
+# Khata
 
 **Your money. Your phone. Nobody else.**
 
-A private, offline money tracker for Android. No bank linking, no sign-up, no cloud.
+A private, offline money tracker for Android.
+No bank linking. No sign-up. No cloud. No judgment (mostly).
 
 ![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
 ![Offline](https://img.shields.io/badge/works-100%25%20offline-blue)
-![Privacy](https://img.shields.io/badge/bank%20linking-none-red)
+![Bank linking](https://img.shields.io/badge/bank%20linking-none-red)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-[Download latest release](https://github.com/vijayarkananduri/khata/releases/latest)
+[Download the latest APK](https://github.com/vijayarkananduri/khata/releases/latest)
 
 </div>
 
 ---
 
-## What is Khata?
+<!-- Add 3 or 4 screenshots here. Example:
+<p align="center">
+  <img width="720" height="1570" alt="WhatsApp Image 2026-10-25 at 10 17 08 AM (1)" src="https://github.com/user-attachments/assets/5f5d6c79-1df7-472a-8f41-a915684aed2b" />
+  <img width="720" height="1572" alt="WhatsApp Image 2026-10-25 at 10 17 08 AM" src="https://github.com/user-attachments/assets/a6ce9fe4-329c-4d61-aa15-127eba841312" />
 
-*Khata* means a ledger, the book where you write down what came in and what went out.
+<img src="docs/screenshots/home.png" width="220" />
+  <img src="docs/screenshots/heatmap.png" width="220" />
+  <img src="docs/screenshots/widgets.png" width="220" />
+</p>
+-->
 
-This app is that book, on your phone. You note down your spending yourself, and everything stays on your device. There is no bank connection, no account, and no server that sees your data.
+## The pitch
 
-## Who is it for?
+*Khata* is the old word for the ledger, the book where the shopkeeper wrote down what came in and what went out.
 
-**Khata is for you if:**
-- You value your privacy and don't want an app reading your bank messages or accounts
-- You like to log your own spending and see where your money goes
-- You want something calm and simple, not a finance dashboard full of AI predictions
+This is that book, on your phone. You write the entries. The app keeps them. Nobody else gets a copy, because there is no "else": no server, no account, no analytics team studying your chai habit.
 
-**Khata is not for you if:**
-- You want transactions to be tracked automatically from your bank
-- You want AI-driven insights, forecasts or financial advice
+## Khata is for you if
 
-Khata is about tracking, not about being clever with your money.
+- You think your bank statement is none of an app's business
+- You are happy to type in your own spending
+- You would rather see where your money went than be told how to invest it
 
-## Features
+## Khata is not for you if
 
-### 📒 Private tracking
-- Log expenses, income and transfers in a few taps
-- No bank linking, fully offline
-- Your history stays on your device, and you can export it as CSV
+- You want expenses to appear automatically from your bank
+- You want AI forecasts, scores or "smart insights"
 
-### 🟩 Spending heatmap
-See your whole year at a glance in a GitHub-style heatmap. Darker days mean heavier spending, so your habits show up without any charts to read.
+It tracks. That's the whole job. It does the job quietly.
 
-### 🔔 Nudges (smart restock reminders)
+## What it does
 
-Khata learns your buying pattern and reminds you before you run out.
+### Tracks, privately
+Log expenses, income, transfers and old transactions in a few taps. Everything stays on your device, and you can export it all as CSV whenever you like.
 
-**How it works**
-1. You log something you buy regularly, like milk, groceries or petrol.
-2. Once Khata has seen the same item more than twice, it works out how often you buy it.
-3. When the next purchase is due, it sends a gentle reminder.
+### Shows your year like a commit graph
+A GitHub-style heatmap of your spending. Dark squares are the days your wallet had opinions. Your habits show up without you reading a single chart.
 
-> You buy 1 litre of milk, then again after 2 days, then again after 2 days. Khata sees the pattern: a litre lasts you about 2 days. On day 2 it reminds you: *"You may be running out of milk."*
+### Nudges you before you run out
+Khata watches how often you buy the same thing and works out how long it lasts.
 
-It works the same way for groceries, petrol and other essentials. The pattern is calculated on your phone from your own entries, and nothing is sent anywhere.
+1. You log something you buy regularly: milk, groceries, petrol.
+2. After it has seen the same item more than twice, Khata works out how often you buy it.
+3. When the next purchase is due, it taps you on the shoulder.
 
-Don't want reminders? Switch nudges on or off any time in **Settings**.
+> You buy a litre of milk. Two days later, you buy a litre of milk. Two days after that, you buy a litre of milk. Khata gets it: a litre lasts you two days. On day two, it says, *"You may be running out of milk."*
 
-### 🧩 Home-screen widgets
-Add widgets to your home screen to see your spending at a glance without opening the app.
+Same trick for groceries, petrol and other essentials. The maths happens on your phone, using only your own entries. Don't want the reminders? Turn nudges off in Settings.
 
-### 🎬 A bit of personality
-Money tracking doesn't have to be boring. Khata shows short quotes inspired by movies and memes, so checking your spending feels a little lighter.
+### Lives on your home screen
+Widgets for daily, weekly, monthly or all-time totals, and for monthly budget progress, so you can check your spending without opening the app and without pretending you didn't.
 
-### 🌐 Your language
+### Has a personality
+Short quotes inspired by movies and memes show up in the app, because money tracking does not need to feel like a tax audit.
+
+### Speaks your language
 Hindi, Telugu, Tamil, Malayalam and Kannada, in the original script or in English letters.
 
-### 🎨 Themes
-Light, Dark, System, or colours taken from your Android wallpaper.
+### Matches your phone
+Light, Dark, System, or colours pulled from your wallpaper.
+
+## Things Khata will never do
+
+- Ask for your bank login
+- Ask you to create an account
+- Need internet to work
+- Send your data anywhere unless you export it yourself
 
 ## Install
 
 1. Open the [latest release](https://github.com/vijayarkananduri/khata/releases/latest)
-2. Download the APK and install it on your phone
-3. Allow installs from your browser or file manager if asked
+2. Download the APK and open it on your phone
+3. If Android asks, allow installs from your browser or file manager
 
-## Build from source
+## Build it yourself
 
-Requires JDK 17 and Android SDK 35.
+You need JDK 17 and Android SDK 35.
 
 ```bash
 git clone https://github.com/vijayarkananduri/khata.git
@@ -90,9 +104,13 @@ cd khata
 
 ## Built with
 
-Kotlin · Jetpack Compose · Room
+Kotlin, Jetpack Compose and Room.
 
-## Privacy promise
+## Contributing
 
-Khata never asks for your bank details, never needs an account, and works without internet. Your data leaves your phone only if you choose to export it.
+Found a bug, or have an idea that fits the "private, simple, offline" rule? Open an issue. Ideas that need a server will be politely declined.
 
+## License
+
+Khata is open source under the [MIT License](LICENSE).
+Bundled fonts have their own licenses in `app/src/main/assets/licenses/`.
