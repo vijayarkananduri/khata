@@ -16,8 +16,9 @@ No bank linking. No sign-up. No cloud. No judgment (mostly).
 
 <br>
 
-<img src="home.jpeg" width="200" alt="Home screen" />
-<img src="calender.jpeg" width="200" alt="Calendar and heatmap" />
+<img src="home.jpg" width="200" alt="Home screen" />
+<img src="calender.jpg" width="200" alt="Calendar " />
+<img src="analysis.jpg" width="200" alt="analysis and heatmap" />
 <img src="widjet.jpeg" width="200" alt="Home-screen widgets" />
 <img src="settings.jpeg" width="200" alt="Settings" />
 
