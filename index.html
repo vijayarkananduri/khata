@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Khata: money tracking that minds its own business</title>
-<meta name="description" content="Khata is a private, offline money tracker for Android. No bank linking, no sign-up, no cloud.">
+<meta name="description" content="Private, offline, open source money tracker for Android. No bank linking, no sign-up, no cloud.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Khata: money tracking that minds its own business">
+<meta property="og:description" content="Private, offline, open source money tracker for Android. No bank linking, no account.">
+<meta property="og:url" content="https://vijayarkananduri.github.io/khata/">
+<meta property="og:image" content="https://vijayarkananduri.github.io/khata/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -30,31 +36,37 @@ a{color:inherit}
 button{font:inherit;color:inherit;cursor:pointer}
 .hand{font-family:var(--hand);font-weight:700}
 
-/* top bar */
-header{display:flex;justify-content:space-between;align-items:center;max-width:640px;margin:0 auto;padding:16px 18px 0}
-.logo{font-weight:700;font-size:1.2rem;text-decoration:none}
+header{display:flex;justify-content:space-between;align-items:center;max-width:1040px;margin:0 auto;padding:16px 18px 0}
+.logo{font-weight:700;font-size:1.25rem;text-decoration:none}
+.hr{display:flex;align-items:center;gap:6px}
+.hr a{display:none;padding:7px 12px;text-decoration:none;color:var(--muted);font-size:.9rem}
 .theme{padding:7px 14px;border-radius:999px;background:var(--glass);border:1px solid var(--edge);font-size:.85rem}
 
-/* hero */
-.hero{padding:30px 0 10px}
+.hero{display:grid;gap:26px;padding:26px 0 8px}
 .kicker{font-size:1.5rem;color:var(--chili);transform:rotate(-2deg);display:inline-block}
 [data-theme="dark"] .kicker{color:var(--tur)}
-h1{font-size:clamp(2rem,8vw,3.2rem);line-height:1.05;letter-spacing:-.02em;margin:6px 0 10px}
-.sub{color:var(--muted);font-size:1.02rem}
-.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:18px 0 6px}
+h1{font-size:clamp(2.1rem,8.5vw,4rem);line-height:1.04;letter-spacing:-.025em;margin:6px 0 12px}
+.sub{color:var(--muted);font-size:1.05rem;max-width:30em;margin:0 auto}
+.badges,.btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.badge{padding:5px 12px;border-radius:999px;font-size:.82rem;font-weight:500;border:1px solid var(--edge);background:var(--glass)}
+.badge.a{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .btn{text-decoration:none;font-weight:500;padding:12px 22px;border-radius:999px;border:1px solid var(--edge);background:var(--glass)}
 .btn.main{background:linear-gradient(135deg,var(--tur),var(--chili));color:#fff;border:0;box-shadow:0 8px 20px rgba(184,67,42,.35)}
 @media(hover:hover){.btn:hover{transform:translateY(-2px)}}
 
-/* phone viewer */
-.stage{padding:18px 0 6px}
-.phone{width:200px;margin:0 auto;padding:7px;border-radius:34px;transform:rotate(2deg)}
+.stage{position:relative;padding:6px 0;perspective:900px}
+.phone{width:210px;margin:0 auto;padding:7px;border-radius:34px;transform:rotate(2deg);transition:transform .15s}
 .pic{display:block;width:100%;aspect-ratio:9/19.5;object-fit:cover;border-radius:27px;background:var(--bg2);color:var(--muted);font-size:.75rem}
 .tabs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:16px}
-.tab{padding:7px 14px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);font-size:.85rem}
+.tab{padding:6px 13px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);font-size:.82rem}
 .tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.fl{display:none;position:absolute;padding:8px 16px;font-size:1.35rem;border-radius:16px;animation:bob 5s ease-in-out infinite}
+@keyframes bob{50%{translate:0 -10px}}
 
-/* marquee */
+.trust{display:grid;gap:10px;margin:18px 0 6px}
+.trust div{padding:12px 14px;font-size:.92rem;font-weight:500}
+.trust small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+
 .mq{overflow:hidden;padding:12px 0;margin:18px 0}
 .marquee{white-space:nowrap;padding:6px 0;border-block:1px solid var(--edge);background:var(--glass);transform:rotate(-1.2deg) scale(1.03)}
 .track{display:inline-flex;animation:scroll 26s linear infinite}
@@ -63,13 +75,13 @@ h1{font-size:clamp(2rem,8vw,3.2rem);line-height:1.05;letter-spacing:-.02em;margi
 .track span::after{content:"/";margin-left:40px;color:var(--chili);opacity:.7}
 @keyframes scroll{to{transform:translateX(-50%)}}
 
-/* toys */
 h2{font-size:1.6rem;line-height:1.15;margin-bottom:4px}
 .tag{color:var(--muted);font-size:.95rem;margin-bottom:14px}
-.toy{padding:22px 18px;margin:0 0 16px}
+.toys{display:grid;gap:16px}
+.toy{padding:22px 18px}
 .go{padding:11px 22px;border-radius:999px;border:0;background:linear-gradient(135deg,var(--tur),var(--chili));color:#fff;font-weight:500}
 .go:active{transform:scale(.96)}
-.count{font-family:var(--hand);font-size:1.5rem;margin-top:8px;min-height:1.8rem}
+.count,.tip{font-family:var(--hand);font-size:1.5rem;margin-top:8px;min-height:1.8rem}
 .ping{max-width:320px;margin:12px auto 0;padding:10px 14px;border-radius:16px;text-align:left;font-size:.9rem;opacity:0;transform:translateY(10px) scale(.96);transition:.35s}
 .ping.show{opacity:1;transform:none}
 .ping b{display:block;font-size:.75rem;color:var(--muted);font-weight:500}
@@ -80,64 +92,118 @@ h2{font-size:1.6rem;line-height:1.15;margin-bottom:4px}
 .heat i[data-l="3"]{background:#D2682A}
 .heat i[data-l="4"]{background:var(--chili)}
 .heat i:hover,.heat i:focus-visible{outline:2px solid var(--ink)}
-.tip{font-family:var(--hand);font-size:1.5rem;margin-top:10px;min-height:1.8rem}
 
-/* stickers */
+.inst{padding:24px 18px;margin:16px 0}
+.inst ol{list-style:none;display:grid;gap:8px;max-width:420px;margin:12px auto;text-align:left;counter-reset:s}
+.inst li{counter-increment:s;padding-left:34px;position:relative;font-size:.95rem}
+.inst li::before{content:counter(s);position:absolute;left:0;top:-1px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:.8rem;display:grid;place-items:center}
+.meta{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;align-items:center}
+.sha{display:flex;gap:8px;align-items:center;max-width:100%;margin-top:10px;justify-content:center;flex-wrap:wrap;font-size:.78rem}
+.sha code{word-break:break-all;background:var(--bg2);padding:5px 9px;border-radius:8px;max-width:100%}
+.copy{padding:5px 12px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);font-size:.8rem}
+
 .stickers{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:6px 0 4px}
 .stk{padding:8px 16px;border-radius:14px;font-weight:500;font-size:.92rem;transition:transform .2s}
 .stk:nth-child(odd){transform:rotate(-3deg)}.stk:nth-child(even){transform:rotate(2.5deg)}
 @media(hover:hover){.stk:hover{transform:rotate(0) scale(1.08)}}
-.never{font-family:var(--hand);font-size:1.5rem;color:var(--jag);margin:6px 0 24px}
+.never{font-family:var(--hand);font-size:1.5rem;color:var(--jag);margin:10px 0 22px}
 [data-theme="dark"] .never{color:var(--tur)}
-.final{padding:26px 18px;margin:8px 0 28px}
+.final{padding:28px 18px;margin:8px 0 28px}
 footer{padding:4px 18px 40px;color:var(--muted);font-size:.85rem}
 footer a{display:inline-block;margin:4px 8px}
-@media(prefers-reduced-motion:reduce){.track{animation:none}.mq{overflow-x:auto}html{scroll-behavior:auto}.ping{transition:none}}
+
+@media(min-width:900px){
+  html{font-size:16px}
+  .box{max-width:1040px;padding:0 28px}
+  .hr a{display:inline-block}
+  .hero{grid-template-columns:1.15fr .85fr;align-items:center;gap:50px;padding:64px 0 24px;text-align:left}
+  .hero .sub{margin:0}
+  .hero .badges,.hero .btns{justify-content:flex-start}
+  h1{font-size:clamp(3.2rem,5.4vw,4.6rem)}
+  .kicker{font-size:1.9rem}
+  .phone{width:270px}
+  .fl{display:block}.f1{top:12%;left:2%}.f2{bottom:18%;right:0}.f3{top:46%;right:-4%}
+  .trust{grid-template-columns:repeat(3,1fr)}
+  .toys{grid-template-columns:1fr 1fr}
+  .toy{padding:30px 26px}
+  h2{font-size:2rem}
+  .tabs{gap:8px}
+}
+@media(prefers-reduced-motion:reduce){.track,.fl{animation:none}.mq{overflow-x:auto}html{scroll-behavior:auto}.ping,.phone{transition:none}}
 </style>
 </head>
 <body>
 
 <header>
   <a class="logo" href="#top">Khata</a>
-  <button class="theme" id="theme" aria-label="Switch between light and dark theme">Dark</button>
+  <div class="hr">
+    <a href="#install">Install</a>
+    <a href="https://github.com/vijayarkananduri/khata">Source code</a>
+    <button class="theme" id="theme" aria-label="Switch between light and dark theme">Dark</button>
+  </div>
 </header>
 
 <main class="box" id="top">
   <section class="hero">
-    <span class="hand kicker">khata (n.) the old ledger</span>
-    <h1>Money tracking that minds its own business.</h1>
-    <p class="sub">Offline. No bank. No sign-up.</p>
-    <div class="btns">
-      <a class="btn main" href="https://github.com/vijayarkananduri/khata/releases/latest">Get the APK</a>
-      <a class="btn" href="https://github.com/vijayarkananduri/khata">GitHub</a>
+    <div>
+      <span class="hand kicker">khata = your money notebook</span>
+      <h1>Money tracking that minds its own business.</h1>
+      <p class="sub">Log what you spend, see where it went, get nudged before you run out of milk, petrol or anything else.</p>
+      <div class="badges"><span class="badge a">Android only for now</span><span class="badge">Open source</span><span class="badge">Works offline</span></div>
+      <div class="btns">
+        <a class="btn main" href="https://github.com/vijayarkananduri/khata/releases/latest">Get the APK</a>
+        <a class="btn" href="https://github.com/vijayarkananduri/khata">Read the code</a>
+      </div>
+    </div>
+    <div class="stage" id="stage">
+      <span class="fl f1 glass hand">100% offline</span>
+      <span class="fl f2 glass hand">no bank login</span>
+      <span class="fl f3 glass hand">open source</span>
+      <div class="phone glass" id="phone"><img class="pic" id="shot" alt="Khata app screen"></div>
+      <div class="tabs" id="tabs"></div>
     </div>
   </section>
 
-  <section class="stage">
-    <div class="phone glass"><img class="pic" id="shot" alt="Khata app screen"></div>
-    <div class="tabs" id="tabs"></div>
-  </section>
+  <div class="trust">
+    <div class="glass">Open source, read every line<small>Anyone can audit exactly what Khata does.</small></div>
+    <div class="glass">No bank linking, no account<small>You type the entries, the app keeps them.</small></div>
+    <div class="glass">Your data, exportable as CSV<small>Take it with you any time.</small></div>
+    <!-- Add this only after you confirm AndroidManifest.xml has no INTERNET permission:
+    <div class="glass">No internet permission<small>The app cannot send your data anywhere.</small></div> -->
+  </div>
 </main>
 
 <div class="mq" aria-hidden="true"><div class="marquee"><div class="track">
-  <span>no bank linking</span><span>fully offline</span><span>no account</span><span>your phone, your data</span><span>nudges before you run out</span><span>five Indian languages</span>
-  <span>no bank linking</span><span>fully offline</span><span>no account</span><span>your phone, your data</span><span>nudges before you run out</span><span>five Indian languages</span>
+  <span>no bank linking</span><span>fully offline</span><span>open source</span><span>your phone, your data</span><span>nudges before you run out</span><span>five Indian languages</span>
+  <span>no bank linking</span><span>fully offline</span><span>open source</span><span>your phone, your data</span><span>nudges before you run out</span><span>five Indian languages</span>
 </div></div></div>
 
 <main class="box">
-  <section class="toy glass">
-    <h2>Try a nudge</h2>
-    <p class="tag">Buy milk three times. Watch what happens.</p>
-    <button class="go" id="milk">Bought milk</button>
-    <div class="count hand" id="count">0 litres bought</div>
-    <div class="ping glass" id="ping"><b>Khata, just now</b>You may be running out of milk.</div>
+  <section class="toys">
+    <div class="toy glass">
+      <h2>Try a nudge</h2>
+      <p class="tag">Buy milk three times. Watch what happens.</p>
+      <button class="go" id="milk">Bought milk</button>
+      <div class="count" id="count">0 litres bought</div>
+      <div class="ping glass" id="ping"><b>Khata, just now</b>You may be running out of milk.</div>
+    </div>
+    <div class="toy glass">
+      <h2>Your year, as a heatmap</h2>
+      <p class="tag">Tap a square. Dark ones are loud days.</p>
+      <div class="heat" id="heat"></div>
+      <div class="tip" id="tip">&nbsp;</div>
+    </div>
   </section>
 
-  <section class="toy glass">
-    <h2>Your year, as a heatmap</h2>
-    <p class="tag">Tap a square. Dark ones are loud days.</p>
-    <div class="heat" id="heat"></div>
-    <div class="tip hand" id="tip">&nbsp;</div>
+  <section class="inst glass" id="install">
+    <h2>Install in three steps</h2>
+    <p class="tag">Android shows a warning for apps from outside the Play Store. That is normal.</p>
+    <ol>
+      <li>Download the APK from the Releases page.</li>
+      <li>Open it. If Android asks, allow installs from your browser.</li>
+      <li>Tap Install and start writing.</li>
+    </ol>
+    <div class="btns"><a class="btn main" href="https://github.com/vijayarkananduri/khata/releases/latest">Download the APK</a></div>
   </section>
 
   <section>
@@ -147,7 +213,7 @@ footer a{display:inline-block;margin:4px 8px}
       <span class="stk glass">Hindi, Telugu, Tamil, Malayalam, Kannada</span>
       <span class="stk glass">Movie and meme quotes</span>
       <span class="stk glass">Light, dark, wallpaper colours</span>
-      <span class="stk glass">CSV export</span>
+      <span class="stk glass">Monthly budget</span>
     </div>
   </section>
 
@@ -167,9 +233,11 @@ footer a{display:inline-block;margin:4px 8px}
 </footer>
 
 <script>
+/* Fill these in after each release. Empty values stay hidden. */
+var APK={version:'',size:'',sha256:''};
+
 (function(){
   var $=function(id){return document.getElementById(id)};
-  /* theme */
   var root=document.documentElement,btn=$('theme'),saved=null;
   try{saved=localStorage.getItem('khata-theme')}catch(e){}
   var theme=saved||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
@@ -177,40 +245,55 @@ footer a{display:inline-block;margin:4px 8px}
   apply(theme);
   btn.onclick=function(){theme=theme==='dark'?'light':'dark';apply(theme);try{localStorage.setItem('khata-theme',theme)}catch(e){}};
 
-  /* screenshot viewer: finds the file whatever its extension */
-  var E=['jpeg','jpg','png','webp','JPEG','JPG','PNG'],R={},img=$('shot');
-  var S=[['home','home'],['calender,calendar','calendar'],['widjet,widget','widgets'],['settings','settings']];
-  function show(n){
-    if(R[n]){img.src=R[n];return}
-    var c=[],i=0;
-    n.split(',').forEach(function(x){E.forEach(function(e){c.push(x+'.'+e)})});
-    img.onload=function(){R[n]=img.getAttribute('src')};
-    img.onerror=function(){if(i<c.length){img.src=c[i++]}else{img.onerror=null;img.removeAttribute('src');img.alt='Missing image: '+n.split(',')[0]+'.jpeg'}};
-    img.onerror();
+  /* APK details */
+  var m=$('meta');
+  [['version',APK.version],['size',APK.size]].forEach(function(p){
+    if(p[1]){var s=document.createElement('span');s.className='badge';s.textContent=(p[0]==='version'?'Version ':'Size ')+p[1];m.appendChild(s)}});
+  if(APK.sha256){$('shaRow').hidden=false;$('sha').textContent=APK.sha256;
+    $('copy').onclick=function(){var b=this;try{navigator.clipboard.writeText(APK.sha256);b.textContent='Copied'}catch(e){b.textContent='Select and copy'}setTimeout(function(){b.textContent='Copy'},1500)}}
+
+  /* screens: a tab appears only if its image exists in this folder */
+  var E=['jpeg','jpg','png','webp','JPEG','JPG','PNG'];
+  var S=[['home','home'],['add,entry,expense','add expense'],['analysis,analytics,anaylisi,analyse','analysis'],['calender,calendar','calendar'],['widjet,widget','widgets'],['telugu,hindi,languages,language','languages'],['settings','settings']];
+  var got=[],left=S.length,img=$('shot');
+  function probe(names,done){
+    var c=[],i=0,t=new Image();
+    names.split(',').forEach(function(x){E.forEach(function(e){c.push(x+'.'+e)})});
+    t.onload=function(){done(t.src)};
+    t.onerror=function(){if(i<c.length){t.src=c[i++]}else{done(null)}};
+    t.onerror();
   }
-  S.forEach(function(s,k){
-    var b=document.createElement('button');b.className='tab';b.textContent=s[1];
-    b.setAttribute('aria-pressed',k===0);
-    b.onclick=function(){document.querySelectorAll('.tab').forEach(function(t){t.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true');show(s[0])};
-    $('tabs').appendChild(b);
-  });
-  show(S[0][0]);
+  S.forEach(function(s,k){probe(s[0],function(src){got[k]=src;if(--left===0)build()})});
+  function build(){
+    var first=true;
+    S.forEach(function(s,k){
+      if(!got[k])return;
+      var b=document.createElement('button');b.className='tab';b.textContent=s[1];b.setAttribute('aria-pressed',first);
+      b.onclick=function(){document.querySelectorAll('.tab').forEach(function(t){t.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true');img.src=got[k]};
+      $('tabs').appendChild(b);
+      if(first){img.src=got[k];first=false}
+    });
+    if(first){img.alt='Add home.jpeg next to index.html'}
+  }
+
+  /* phone follows the pointer on desktop */
+  var st=$('stage'),ph=$('phone');
+  if(matchMedia('(hover:hover) and (min-width:900px)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    st.onmousemove=function(e){var r=st.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+      ph.style.transform='rotateY('+(x*16)+'deg) rotateX('+(-y*12)+'deg) rotate(2deg)'};
+    st.onmouseleave=function(){ph.style.transform=''};
+  }
 
   /* nudge toy */
   var n=0,ping=$('ping'),msgs=['0 litres bought','1 litre. Lovely.','2 litres. A pattern?','Pattern found.'];
-  $('milk').onclick=function(){
-    n=n>=3?0:n+1;$('count').textContent=n===0?'Reset. Fresh start.':msgs[n];
-    ping.classList.toggle('show',n===3);
-  };
+  $('milk').onclick=function(){n=n>=3?0:n+1;$('count').textContent=n===0?'Reset. Fresh start.':msgs[n];ping.classList.toggle('show',n===3)};
 
   /* heatmap toy */
-  var s=11,h=$('heat'),Q=[['A quiet day. Suspicious.','Nothing spent. Frugal or forgot?'],
-    ['Just a chai.','Small stuff, small damage.'],['Normal-person spending.','Groceries and a snack.'],
-    ['Somebody got a treat.','Delivery app: 1, wallet: 0.'],['The wallet filed a complaint.','Big day. We do not speak of it.']];
+  var s=11,h=$('heat'),Q=[['A quiet day. Suspicious.','Nothing spent. Frugal or forgot?'],['Just a chai.','Small stuff, small damage.'],['Normal-person spending.','Groceries and a snack.'],['Somebody got a treat.','Delivery app: 1, wallet: 0.'],['The wallet filed a complaint.','Big day. We do not speak of it.']];
   function r(){s=(s*9301+49297)%233280;return s/233280}
   for(var k=0;k<182;k++){
-    var v=r(),l=v<.28?0:v<.55?1:v<.78?2:v<.92?3:4;
-    var c=document.createElement('i');c.dataset.l=l;c.tabIndex=0;c.dataset.q=Q[l][Math.floor(r()*2)];
+    var v=r(),l=v<.28?0:v<.55?1:v<.78?2:v<.92?3:4,c=document.createElement('i');
+    c.dataset.l=l;c.tabIndex=0;c.dataset.q=Q[l][Math.floor(r()*2)];
     c.onmouseenter=c.onclick=c.onfocus=function(){$('tip').textContent=this.dataset.q};
     h.appendChild(c);
   }
