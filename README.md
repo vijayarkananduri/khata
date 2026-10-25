@@ -2,21 +2,21 @@
 
 **Everyday money, in balance.**
 
-Khata 2.0 removes the Haze runtime after a confirmed rendering crash and uses a safer static glass-inspired design with theme-aware onboarding contrast.
+Khata is a polished, offline-first Android companion for tracking spending, income, budgets and everyday money habits. It keeps your records on your device and turns them into a clear, calm picture of where your money goes.
 
-Khata is a calm, offline-first companion for tracking daily spending, income, budgets, and money habits.
+## A clearer money picture
 
-## Features
+- Log expenses, income, transfers and past transactions in a few taps.
+- Explore a refreshed analysis dashboard with a category donut, readable breakdowns, a calendar and a year heatmap.
+- Add separate home-screen widgets for daily, weekly, monthly or all-time totals, monthly budget progress, or a quote.
+- Set a monthly budget and opt in to budget alerts and local restock nudges for groceries, fuel and essentials.
+- Use Hindi, Telugu, Tamil, Malayalam or Kannada; choose original script or English-letter transliteration.
+- Choose Light, Dark, System or Android wallpaper-derived color themes. Motion and haptic feedback respect app/device settings.
+- Keep your financial history local and export it as CSV.
 
-- Quickly record expenses, income, transfers, and past transactions.
-- See spending at a glance with category insights, a calendar, and a year heatmap.
-- Add resizable home-screen widgets for daily, weekly, monthly, or all-time totals.
-- Set a monthly budget and opt in to budget alerts and gentle restock reminders.
-- Review uncategorized entries; Khata learns your corrections on-device.
-- Use Hindi, Telugu, Tamil, Malayalam, or Kannada, with optional English-letter transliteration.
-- Keep records locally, export a CSV, and use the warm paper-and-Ember design with static glass-inspired gradients, readable solid surfaces, and no runtime blur engine.
+Quote cards show a direct line only. Short original-language excerpts are attributed in the bundled catalog to published dialogue sources; translations and commentary are not rendered as quotes.
 
-## Build
+## Build and test
 
 Use JDK 17 and Android SDK 35:
 
@@ -24,8 +24,10 @@ Use JDK 17 and Android SDK 35:
 ./gradlew testDebugUnitTest assembleDebug
 ```
 
-GitHub Actions runs tests and builds an APK on pushes to `main`. Tagged releases are published from the Android release workflow. A release is owner-key signed when signing secrets are configured; otherwise it is marked as a debug-signed test prerelease.
+GitHub Actions runs unit tests and builds an APK on pushes to `main`. Tagged releases run the same tests and publish an APK. When owner signing secrets are configured, the APK is signed with that owner key; otherwise, the release is marked as a debug-signed test build.
 
 [Latest Khata release](https://github.com/vijayarkananduri/khata/releases/latest)
 
-The private repository has no open-source license selected. Bundled font license files are in `app/src/main/assets/licenses/`.
+## Licensing
+
+This repository currently has no open-source license selected. Do not assume permission to redistribute or modify it beyond the repository's existing terms. Bundled font license files are in `app/src/main/assets/licenses/`.

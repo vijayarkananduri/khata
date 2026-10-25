@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.io.IOException
+import com.khata.widget.WidgetRefresh
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -72,18 +73,40 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
             p[Keys.compare] = budgetPaise <= 0L
             p[Keys.onboarding] = true
         }
+        syncWidgetSettings(language = language, roman = roman, budgetPaise = budgetPaise)
+        WidgetRefresh.refreshInstalled(context)
     }
     suspend fun setUsername(value: String) = store.edit { it[Keys.username] = value }
-    suspend fun setLanguage(value: String) = store.edit { it[Keys.language] = value }
-    suspend fun setRoman(value: Boolean) = store.edit { it[Keys.roman] = value }
+    suspend fun setLanguage(value: String) {
+        store.edit { it[Keys.language] = value }
+        context.getSharedPreferences("khata_widget_prefs", Context.MODE_PRIVATE).edit().putString("language", value).apply()
+        WidgetRefresh.refreshInstalled(context)
+    }
+    suspend fun setRoman(value: Boolean) {
+        store.edit { it[Keys.roman] = value }
+        context.getSharedPreferences("khata_widget_prefs", Context.MODE_PRIVATE).edit().putBoolean("roman_script", value).apply()
+        WidgetRefresh.refreshInstalled(context)
+    }
     suspend fun setTheme(value: String) = store.edit { it[Keys.theme] = value }
     suspend fun setMotion(value: String) = store.edit { it[Keys.motion] = value }
     suspend fun setHaptics(value: Boolean) = store.edit { it[Keys.haptics] = value }
-    suspend fun setBudget(value: Long) = store.edit { it[Keys.budget] = value }
+    suspend fun setBudget(value: Long) {
+        store.edit { it[Keys.budget] = value }
+        context.getSharedPreferences("khata_widget_prefs", Context.MODE_PRIVATE).edit().putLong("budget_paise", value.coerceAtLeast(0L)).apply()
+        WidgetRefresh.refreshInstalled(context)
+    }
     suspend fun setCompare(value: Boolean) = store.edit { it[Keys.compare] = value }
     suspend fun setNudges(value: Boolean) {
         store.edit { it[Keys.nudges] = value }
         context.getSharedPreferences("khata_nudge_worker", Context.MODE_PRIVATE).edit().putBoolean("enabled", value).apply()
+    }
+
+    private fun syncWidgetSettings(language: String, roman: Boolean, budgetPaise: Long) {
+        context.getSharedPreferences("khata_widget_prefs", Context.MODE_PRIVATE).edit()
+            .putString("language", language)
+            .putBoolean("roman_script", roman)
+            .putLong("budget_paise", budgetPaise.coerceAtLeast(0L))
+            .apply()
     }
 }
 

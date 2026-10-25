@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/preset_card" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@drawable/widget_card_bg" android:padding="16dp">
+    <TextView android:id="@+id/preset_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TODAY" android:textColor="#FF76462F" android:textSize="11sp" android:letterSpacing="0.12" android:textStyle="bold"/>
+    <TextView android:id="@+id/preset_total" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="₹0" android:textColor="#FF28231E" android:textSize="30sp" android:textStyle="bold" android:singleLine="true" android:ellipsize="end"/>
+    <TextView android:id="@+id/preset_caption" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="spent today" android:textColor="#FF554C43" android:textSize="13sp" android:singleLine="true" android:ellipsize="end"/>
+</LinearLayout>

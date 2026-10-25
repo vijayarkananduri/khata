@@ -1,6 +1,9 @@
 package com.khata.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -9,6 +12,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -21,7 +25,7 @@ val Parchment = Color(0xFFFAF7F0)
 val LightSurface = Color(0xFFFFFDF8)
 val LightAlt = Color(0xFFF3EEE5)
 val LightInk = Color(0xFF292521)
-val LightMuted = Color(0xFF746E68)
+val LightMuted = Color(0xFF625A52)
 val LightBorder = Color(0xFFE8E0D5)
 val Ember = Color(0xFFC95736)
 val EmberDeep = Color(0xFF9E3D27)
@@ -37,7 +41,7 @@ val DarkBackground = Color(0xFF191715)
 val DarkSurface = Color(0xFF24211D)
 val DarkAlt = Color(0xFF302B25)
 val DarkInk = Color(0xFFF4EFE6)
-val DarkMuted = Color(0xFFB7ADA0)
+val DarkMuted = Color(0xFFC0B8AE)
 val DarkBorder = Color(0xFF4A4036)
 val DarkEmber = Color(0xFFF08B6F)
 val DarkTide = Color(0xFF8CC5A0)
@@ -82,7 +86,7 @@ private val KhataShapes = Shapes(
 )
 
 private val LightScheme = lightColorScheme(
-    primary = Ember,
+    primary = EmberDeep,
     onPrimary = Color(0xFFFFF8F3),
     primaryContainer = Color(0xFFF5DCD2),
     onPrimaryContainer = Color(0xFF49251A),
@@ -139,13 +143,22 @@ private val DarkScheme = darkColorScheme(
 
 @Composable
 fun KhataTheme(themeMode: String = "SYSTEM", content: @Composable () -> Unit) {
+    val systemDark = isSystemInDarkTheme()
     val dark = when (themeMode) {
         "DARK" -> true
         "LIGHT" -> false
-        else -> isSystemInDarkTheme()
+        else -> systemDark
+    }
+    val context = LocalContext.current
+    val dynamic = themeMode == "WALLPAPER" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val scheme = when {
+        dynamic && dark -> dynamicDarkColorScheme(context)
+        dynamic -> dynamicLightColorScheme(context)
+        dark -> DarkScheme
+        else -> LightScheme
     }
     MaterialTheme(
-        colorScheme = if (dark) DarkScheme else LightScheme,
+        colorScheme = scheme,
         typography = KhataTypography,
         shapes = KhataShapes,
         content = content

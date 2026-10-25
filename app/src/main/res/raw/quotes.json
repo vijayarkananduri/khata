@@ -3,23 +3,113 @@
     "hi": {
       "quotes": [
         {
-          "id": "movie_hi_k3g_2001_01",
-          "native": "पैसा तो हर कोई कमा लेता है",
-          "roman": "Paisā to har koī kamā letā hai",
+          "id": "hi_k3g_money_01",
+          "native": "पैसा तो हर कोई कमा लेता है, लेकिन इज्जत कमाना सबके बस की बात नहीं",
+          "roman": "Paisā to har koī kamā letā hai, lekin izzat kamānā sabke bas kī bāt nahī̃",
           "film_title": "कभी खुशी कभी गम",
           "film_year": "2001",
           "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_pink_no_01",
+          "native": "ना का मतलब ना ही होता है।",
+          "roman": "Nā kā matlab nā hī hotā hai.",
+          "film_title": "पिंक",
+          "film_year": "2016",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_wazir_second_chance_01",
+          "native": "जिंदगी में दूसरा मौका मिलता नहीं",
+          "roman": "Zindagī mẽ dūsrā maukā miltā nahī̃",
+          "film_title": "वज़ीर",
+          "film_year": "2016",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_sarkar_choice_01",
+          "native": "मुझे जो सही लगता है मैं करता हूं",
+          "roman": "Mujhe jo sahī lagtā hai maĩ kartā hū̃",
+          "film_title": "सरकार",
+          "film_year": "2005",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_trishul_timing_01",
+          "native": "सही बात सही वक्त पर की जाए तो उसका मजा ही कुछ और है",
+          "roman": "Sahī bāt sahī vaqt par kī jāe to uskā maza hī kuch aur hai",
+          "film_title": "त्रिशूल",
+          "film_year": "1978",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_deewaar_balance_01",
+          "native": "आज मेरे पास बैंक बैलेंस है",
+          "roman": "Aaj mere paas bank balance hai",
+          "film_title": "दीवार",
+          "film_year": "1975",
+          "source_url": "https://www.jagran.com/entertainment/bollywood-deewaar-movie-scene-after-which-amitabh-bachchan-locked-himself-in-room-for-15-hours-know-complete-story-23663664.html",
           "trigger": "DAILY_NOTE"
         }
       ],
       "splashQuotes": [
         {
-          "id": "movie_hi_k3g_2001_01",
-          "native": "पैसा तो हर कोई कमा लेता है",
-          "roman": "Paisā to har koī kamā letā hai",
+          "id": "hi_k3g_money_01",
+          "native": "पैसा तो हर कोई कमा लेता है, लेकिन इज्जत कमाना सबके बस की बात नहीं",
+          "roman": "Paisā to har koī kamā letā hai, lekin izzat kamānā sabke bas kī bāt nahī̃",
           "film_title": "कभी खुशी कभी गम",
           "film_year": "2001",
           "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_pink_no_01",
+          "native": "ना का मतलब ना ही होता है।",
+          "roman": "Nā kā matlab nā hī hotā hai.",
+          "film_title": "पिंक",
+          "film_year": "2016",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_wazir_second_chance_01",
+          "native": "जिंदगी में दूसरा मौका मिलता नहीं",
+          "roman": "Zindagī mẽ dūsrā maukā miltā nahī̃",
+          "film_title": "वज़ीर",
+          "film_year": "2016",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_sarkar_choice_01",
+          "native": "मुझे जो सही लगता है मैं करता हूं",
+          "roman": "Mujhe jo sahī lagtā hai maĩ kartā hū̃",
+          "film_title": "सरकार",
+          "film_year": "2005",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_trishul_timing_01",
+          "native": "सही बात सही वक्त पर की जाए तो उसका मजा ही कुछ और है",
+          "roman": "Sahī bāt sahī vaqt par kī jāe to uskā maza hī kuch aur hai",
+          "film_title": "त्रिशूल",
+          "film_year": "1978",
+          "source_url": "https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "hi_deewaar_balance_01",
+          "native": "आज मेरे पास बैंक बैलेंस है",
+          "roman": "Āj mere pās baiṅk baiलेंस hai",
+          "film_title": "दीवार",
+          "film_year": "1975",
+          "source_url": "https://www.jagran.com/entertainment/bollywood-deewaar-movie-scene-after-which-amitabh-bachchan-locked-himself-in-room-for-15-hours-know-complete-story-23663664.html",
           "trigger": "DAILY_NOTE"
         }
       ]
@@ -27,27 +117,72 @@
     "te": {
       "quotes": [
         {
-          "id": "movie_te_lucky_baskhar_2024_01",
-          "native": "రూపాయి రూపాయి దాచుకుంటాం..",
-          "roman": "rūpāyi rūpāyi dācukuṇṭām..",
+          "id": "te_lucky_save_01",
+          "native": "కష్టం వస్తే.. ఖర్చులన్నీ తగ్గించుకుని రూపాయి రూపాయి దాచుకుంటాం..",
+          "roman": "Kaṣṭaṁ vaste.. kharcullannī taggin̄cukoni rūpāyi rūpāyi dācukuṇṭāṁ..",
           "film_title": "లక్కీ భాస్కర్",
           "film_year": "2024",
           "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
           "trigger": "DAILY_NOTE"
         },
         {
-          "id": "movie_te_lucky_baskhar_2024_02",
-          "native": "ఒక్క రూపాయి కూడా మిగలకుండా ఖర్చు పెట్టేస్తాం సార్..",
-          "roman": "okka rūpāyi kūḍā migalakuṇḍā kharcu peṭṭēstāṁ sār..",
+          "id": "te_lucky_spend_01",
+          "native": "అదే పంతం వస్తే.. ఒక్క రూపాయి కూడా మిగలకుండా ఖర్చు పెట్టేస్తాం సార్..",
+          "roman": "Adē pantaṁ vaste.. okka rūpāyi kūḍā migalakuṇḍā kharcu peṭṭēstāṁ sār..",
           "film_title": "లక్కీ భాస్కర్",
           "film_year": "2024",
           "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
           "trigger": "DAILY_NOTE"
         },
         {
-          "id": "movie_te_lucky_baskhar_2024_03",
+          "id": "te_lucky_dignity_01",
           "native": "డబ్బుంటేనే మర్యాద.. ప్రేమ..",
-          "roman": "ḍabbunṭēnē maryāda.. prēma..",
+          "roman": "Ḍabbunṭēnē maryāda.. prēma..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_lucky_pride_01",
+          "native": "వాడి అహంకారాన్ని కూడా కొనడానికి..",
+          "roman": "Vāḍi ahaṅkārānni kūḍā konḍāniki..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_lucky_dream_01",
+          "native": "కలల్ని నిజం చేసుకోవాలో చూపించాడు హర్షద్ మెహ్రా..",
+          "roman": "Kalalni nijaṁ cēsukōvālō cūpiñcāḍu Harṣad Mehrā..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_lucky_stop_01",
+          "native": "ఎప్పుడు ఆపావన్నదే ముఖ్యం..",
+          "roman": "Eppuḍu āpāvanadē mukhyaṁ..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_lucky_calm_01",
+          "native": "అన్ని ప్రాబ్లమ్స్ తీర్చేసుకుని ప్రశాంతంగా పడుకోగలడు..",
+          "roman": "Anni problems tīrcēsukoni praśāntaṅgā paḍukōgaladu..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_lucky_family_01",
+          "native": "ఫ్యామిలీ కోసం ఎంత రిస్క్ చేసినా.. తప్పు లేదని..",
+          "roman": "Family kōsaṁ enta risk cēsina.. tappu lēdani..",
           "film_title": "లక్కీ భాస్కర్",
           "film_year": "2024",
           "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
@@ -56,27 +191,54 @@
       ],
       "splashQuotes": [
         {
-          "id": "movie_te_lucky_baskhar_2024_01",
-          "native": "రూపాయి రూపాయి దాచుకుంటాం..",
-          "roman": "rūpāyi rūpāyi dācukuṇṭām..",
+          "id": "te_lucky_save_01",
+          "native": "కష్టం వస్తే.. ఖర్చులన్నీ తగ్గించుకుని రూపాయి రూపాయి దాచుకుంటాం..",
+          "roman": "Kaṣṭaṁ vaste.. kharcullannī taggin̄cukoni rūpāyi rūpāyi dācukuṇṭāṁ..",
           "film_title": "లక్కీ భాస్కర్",
           "film_year": "2024",
           "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
           "trigger": "DAILY_NOTE"
         },
         {
-          "id": "movie_te_lucky_baskhar_2024_02",
-          "native": "ఒక్క రూపాయి కూడా మిగలకుండా ఖర్చు పెట్టేస్తాం సార్..",
-          "roman": "okka rūpāyi kūḍā migalakuṇḍā kharcu peṭṭēstāṁ sār..",
+          "id": "te_lucky_spend_01",
+          "native": "అదే పంతం వస్తే.. ఒక్క రూపాయి కూడా మిగలకుండా ఖర్చు పెట్టేస్తాం సార్..",
+          "roman": "Adē pantaṁ vaste.. okka rūpāyi kūḍā migalakuṇḍā kharcu peṭṭēstāṁ sār..",
           "film_title": "లక్కీ భాస్కర్",
           "film_year": "2024",
           "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
           "trigger": "DAILY_NOTE"
         },
         {
-          "id": "movie_te_lucky_baskhar_2024_03",
+          "id": "te_lucky_dignity_01",
           "native": "డబ్బుంటేనే మర్యాద.. ప్రేమ..",
-          "roman": "ḍabbunṭēnē maryāda.. prēma..",
+          "roman": "Ḍabbunṭēnē maryāda.. prēma..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_lucky_pride_01",
+          "native": "వాడి అహంకారాన్ని కూడా కొనడానికి..",
+          "roman": "Vāḍi ahaṅkārānni kūḍā konḍāniki..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_lucky_dream_01",
+          "native": "కలల్ని నిజం చేసుకోవాలో చూపించాడు హర్షద్ మెహ్రా..",
+          "roman": "Kalalni nijaṁ cēsukōvālō cūpiñcāḍu Harṣad Mehrā..",
+          "film_title": "లక్కీ భాస్కర్",
+          "film_year": "2024",
+          "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "te_lucky_stop_01",
+          "native": "ఎప్పుడు ఆపావన్నదే ముఖ్యం..",
+          "roman": "Eppuḍu āpāvanadē mukhyaṁ..",
           "film_title": "లక్కీ భాస్కర్",
           "film_year": "2024",
           "source_url": "https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html",
@@ -85,16 +247,328 @@
       ]
     },
     "ta": {
-      "quotes": [],
-      "splashQuotes": []
+      "quotes": [
+        {
+          "id": "ta_sathuranga_communist_01",
+          "native": "நாமல்லாம் முதலாளி ஆக விரும்புற கம்யூனிஸ்ட்",
+          "roman": "Naamellaam mudhalaali aaga virumbura communist",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_sathuranga_desire_01",
+          "native": "ஒருத்தனை ஏமாத்தணும்னா ஆசைய தூண்டணும்",
+          "roman": "Oruthanai emaaththanaumnaa aasaiya thoondanum",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_sathuranga_opportunity_01",
+          "native": "நான் யாரையும் ஏமாத்தலை",
+          "roman": "Naan yaaraiyum emaaththala",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_sathuranga_guru_01",
+          "native": "ஒரு வகையில அவன் உனக்கு குரு மாதிரி",
+          "roman": "Oru vagaiyil avan unakku guru maadhiri",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_sathuranga_ego_01",
+          "native": "வெள்ளை வேட்டி, வெள்ளை சட்ட போட்டா ஒருத்தனை ஏமாத்துற தைரியம்",
+          "roman": "Vellai vetti, vellai sattai pottaa oruthanai emaaththura thairiyam",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        }
+      ],
+      "splashQuotes": [
+        {
+          "id": "ta_sathuranga_communist_01",
+          "native": "நாமல்லாம் முதலாளி ஆக விரும்புற கம்யூனிஸ்ட்",
+          "roman": "Naamellaam mudhalaali aaga virumbura communist",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_sathuranga_desire_01",
+          "native": "ஒருத்தனை ஏமாத்தணும்னா ஆசைய தூண்டணும்",
+          "roman": "Oruthanai emaaththanaumnaa aasaiya thoondanum",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_sathuranga_opportunity_01",
+          "native": "நான் யாரையும் ஏமாத்தலை",
+          "roman": "Naan yaaraiyum emaaththala",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_sathuranga_guru_01",
+          "native": "ஒரு வகையில அவன் உனக்கு குரு மாதிரி",
+          "roman": "Oru vagaiyil avan unakku guru maadhiri",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ta_sathuranga_ego_01",
+          "native": "வெள்ளை வேட்டி, வெள்ளை சட்ட போட்டா ஒருத்தனை ஏமாத்துற தைரியம்",
+          "roman": "Vellai vetti, vellai sattai pottaa oruthanai emaaththura thairiyam",
+          "film_title": "சதுரங்க வேட்டை",
+          "film_year": "2014",
+          "source_url": "https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai",
+          "trigger": "DAILY_NOTE"
+        }
+      ]
     },
     "ml": {
-      "quotes": [],
-      "splashQuotes": []
+      "quotes": [
+        {
+          "id": "ml_aaraam_shambho_01",
+          "native": "ശംഭോ മഹാദേവ",
+          "roman": "Shambho Mahadeva",
+          "film_title": "ആറാം തമ്പുരാൻ",
+          "film_year": "1997",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_narasimham_dinesha_01",
+          "native": "നീ പോ മോനേ ദിനേശാ",
+          "roman": "Nee po mone Dinesha",
+          "film_title": "നരസിംഹം",
+          "film_year": "2000",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_ravanaprabhu_savari_01",
+          "native": "സവാരിഗിരിഗിരി",
+          "roman": "Savari girigiri",
+          "film_title": "രാവണപ്രഭു",
+          "film_year": "2001",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_raja_mind_01",
+          "native": "മനസ്സിൽ കുറ്റബോധം തോന്നിത്തുടങ്ങിയാൽ പിന്നെ ചെയ്യുന്നതൊക്കെ യാന്ത്രികമായിരിക്കും",
+          "roman": "Manassil kuttabodham thonnithudangiyal pinne cheyyunnathellam yanthrikamayirikkum",
+          "film_title": "രാജാവിന്റെ മകൻ",
+          "film_year": "1986",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_thoovanam_lemon_01",
+          "native": "ഇമ്മക്കൊരോ നാരങ്ങാ വെള്ളം കാച്ചിയാലോ...?",
+          "roman": "Immakkoru naranga vellam kachiyalo...?",
+          "film_title": "തൂവാനത്തുമ്പികൾ",
+          "film_year": "1987",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_sagar_friends_01",
+          "native": "സാഗർ എന്ന മിത്രത്തെ മാത്രമേ നിനക്കറിയൂ; ജാക്കി എന്ന ശത്രുവിനെ അറിയില്ല",
+          "roman": "Sagar enna mithrathe mathrame ninakkariyoo; Jackie enna shathruvine ariyilla",
+          "film_title": "സാഗർ ഏലിയാസ് ജാക്കി",
+          "film_year": "2009",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_chandrolsavam_best_01",
+          "native": "ബെസ്റ്റ് കണ്ണാ ബെസ്റ്റ്",
+          "roman": "Best kanna best",
+          "film_title": "ചന്ദ്രോത്സവം",
+          "film_year": "2005",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_thalayanamanthram_01",
+          "native": "ഞാൻ ഈ പോളിടെക്നിക്കിൽ ഒന്നും പോയിട്ടില്ലല്ലോ",
+          "roman": "Njan ee polytechnic-il onnum poyittillallo",
+          "film_title": "തലയണമന്ത്രം",
+          "film_year": "1990",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        }
+      ],
+      "splashQuotes": [
+        {
+          "id": "ml_aaraam_shambho_01",
+          "native": "ശംഭോ മഹാദേവ",
+          "roman": "Shambho Mahadeva",
+          "film_title": "ആറാം തമ്പുരാൻ",
+          "film_year": "1997",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_narasimham_dinesha_01",
+          "native": "നീ പോ മോനേ ദിനേശാ",
+          "roman": "Nee po mone Dinesha",
+          "film_title": "നരസിംഹം",
+          "film_year": "2000",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_ravanaprabhu_savari_01",
+          "native": "സവാരിഗിരിഗിരി",
+          "roman": "Savari girigiri",
+          "film_title": "രാവണപ്രഭു",
+          "film_year": "2001",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_raja_mind_01",
+          "native": "മനസ്സിൽ കുറ്റബോധം തോന്നിത്തുടങ്ങിയാൽ പിന്നെ ചെയ്യുന്നതൊക്കെ യാന്ത്രികമായിരിക്കും",
+          "roman": "Manassil kuttabodham thonnithudangiyal pinne cheyyunnathellam yanthrikamayirikkum",
+          "film_title": "രാജാവിന്റെ മകൻ",
+          "film_year": "1986",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_thoovanam_lemon_01",
+          "native": "ഇമ്മക്കൊരോ നാരങ്ങാ വെള്ളം കാച്ചിയാലോ...?",
+          "roman": "Immakkoru naranga vellam kachiyalo...?",
+          "film_title": "തൂവാനത്തുമ്പികൾ",
+          "film_year": "1987",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "ml_sagar_friends_01",
+          "native": "സാഗർ എന്ന മിത്രത്തെ മാത്രമേ നിനക്കറിയൂ; ജാക്കി എന്ന ശത്രുവിനെ അറിയില്ല",
+          "roman": "Sagar enna mithrathe mathrame ninakkariyoo; Jackie enna shathruvine ariyilla",
+          "film_title": "സാഗർ ഏലിയാസ് ജാക്കി",
+          "film_year": "2009",
+          "source_url": "https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal",
+          "trigger": "DAILY_NOTE"
+        }
+      ]
     },
     "kn": {
-      "quotes": [],
-      "splashQuotes": []
+      "quotes": [
+        {
+          "id": "kn_yajamana_brand_01",
+          "native": "ಆಕಾಶಕ್ಕೆ ತಲೆಕೊಟ್ಟು... ಭೂಮಿಗೆ ಬೆವರಿಳಿಸಿ...",
+          "roman": "Aakaashakke talekottu... bhoomige bevarilisi...",
+          "film_title": "ಯಜಮಾನ",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_yajamana_path_01",
+          "native": "ಆನೆ ನಡೆದಿದ್ದೆ ದಾರಿ...",
+          "roman": "Aane nadedidde daari...",
+          "film_title": "ಯಜಮಾನ",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_pailwaan_resilience_01",
+          "native": "ಸೋಲನ್ನು ಅಷ್ಟು ಸುಲಭವಾಗಿ ಒಪ್ಪಿಕೊಳ್ಳೋನು ನಾನಲ್ಲ...",
+          "roman": "Solannu ashtu sulabhavaagi oppikollonu naanalla...",
+          "film_title": "ಪೈಲ್ವಾನ್",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_amar_hero_01",
+          "native": "ಹೇ... ನಾನು ಹೀರೋನೇ...",
+          "roman": "Hey... naanu hero-ne...",
+          "film_title": "ಅಮರ್",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_bharate_salaam_01",
+          "native": "ಸಲಾಂ ಹೊಡೆಯೋ ಸೀನೇ ಇಲ್ಲ ಡಾರ್ಲಿಂಗ್",
+          "roman": "Salaam hodeyo scene-e illa darling",
+          "film_title": "ಭರಾಟೆ",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        }
+      ],
+      "splashQuotes": [
+        {
+          "id": "kn_yajamana_brand_01",
+          "native": "ಆಕಾಶಕ್ಕೆ ತಲೆಕೊಟ್ಟು... ಭೂಮಿಗೆ ಬೆವರಿಳಿಸಿ...",
+          "roman": "Aakaashakke talekottu... bhoomige bevarilisi...",
+          "film_title": "ಯಜಮಾನ",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_yajamana_path_01",
+          "native": "ಆನೆ ನಡೆದಿದ್ದೆ ದಾರಿ...",
+          "roman": "Aane nadedidde daari...",
+          "film_title": "ಯಜಮಾನ",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_pailwaan_resilience_01",
+          "native": "ಸೋಲನ್ನು ಅಷ್ಟು ಸುಲಭವಾಗಿ ಒಪ್ಪಿಕೊಳ್ಳೋನು ನಾನಲ್ಲ...",
+          "roman": "Solannu ashtu sulabhavaagi oppikollonu naanalla...",
+          "film_title": "ಪೈಲ್ವಾನ್",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_amar_hero_01",
+          "native": "ಹೇ... ನಾನು ಹೀರೋನೇ...",
+          "roman": "Hey... naanu hero-ne...",
+          "film_title": "ಅಮರ್",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        },
+        {
+          "id": "kn_bharate_salaam_01",
+          "native": "ಸಲಾಂ ಹೊಡೆಯೋ ಸೀನೇ ಇಲ್ಲ ಡಾರ್ಲಿಂಗ್",
+          "roman": "Salaam hodeyo scene-e illa darling",
+          "film_title": "ಭರಾಟೆ",
+          "film_year": "2019",
+          "source_url": "https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html",
+          "trigger": "DAILY_NOTE"
+        }
+      ]
     }
   }
 }

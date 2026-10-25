@@ -11,6 +11,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -20,6 +24,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,6 +50,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.consume
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -73,7 +81,14 @@ import com.khata.notifications.NotificationHelper
 import com.khata.notifications.NudgeCadence
 import com.khata.ui.theme.*
 import com.khata.widget.KhataHomeWidgetProvider
+import com.khata.widget.KhataDailyWidgetProvider
+import com.khata.widget.KhataWeeklyWidgetProvider
+import com.khata.widget.KhataMonthlyWidgetProvider
+import com.khata.widget.KhataAllTimeWidgetProvider
+import com.khata.widget.KhataProgressRingWidgetProvider
+import com.khata.widget.KhataQuoteWidgetProvider
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.widget.Toast
 import java.text.NumberFormat
@@ -92,8 +107,10 @@ fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
         quoteRepo.splashText(settings.language, settings.romanScript)
     }
     KhataTheme(settings.themeMode) {
+        val splashReduceMotion = shouldReduceMotion(settings.reduceMotion)
         var splash by remember { mutableStateOf(true) }
-        LaunchedEffect(Unit) { delay(1500); splash = false }
+        LaunchedEffect(splashReduceMotion) { delay(if (splashReduceMotion) 450 else 1050); splash = false }
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
         Box(Modifier.fillMaxSize()) {
             DewBackdrop()
             if (!settings.onboardingComplete) {
@@ -101,14 +118,25 @@ fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
             } else {
                 MainShell(viewModel, settings)
             }
-            if (splash && splashQuote.isNotBlank()) {
+            AnimatedVisibility(
+                visible = splash && splashQuote.isNotBlank(),
+                enter = if (splashReduceMotion) fadeIn(tween(0)) else fadeIn(tween(320)) + scaleIn(initialScale = .95f, animationSpec = tween(320)) +
+                    slideInVertically(initialOffsetY = { it / 22 }, animationSpec = tween(320)),
+                exit = fadeOut(tween(if (splashReduceMotion) 0 else 220))
+            ) {
                 Column(
                     Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    DewSurface(modifier = Modifier.size(72.dp), shape = CircleShape, tone = MaterialTheme.colorScheme.primaryContainer, elevation = 15.dp) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Outlined.AccountBalanceWallet, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(32.dp))
+                        }
+                    }
+                    Spacer(Modifier.height(18.dp))
                     Text("KHATA", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
-                    Spacer(Modifier.height(28.dp))
+                    Spacer(Modifier.height(22.dp))
                     Text(
                         splashQuote, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold,
                         fontSize = 30.sp, lineHeight = 38.sp,
@@ -117,6 +145,7 @@ fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
                     )
                 }
             }
+        }
         }
     }
 }
@@ -264,13 +293,51 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
 @Composable
 private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabled: Boolean, onSelect: (String) -> Unit) {
     val context = LocalContext.current
+    val navItems = remember { listOf("Home", "Calendar", "Analysis", "Settings") }
+    val latestSelected by rememberUpdatedState(selected)
+    val latestOnSelect by rememberUpdatedState(onSelect)
     DewSurface(
         modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 12.dp).height(68.dp),
         shape = RoundedCornerShape(32.dp), zIndex = 90f,
         tone = MaterialTheme.colorScheme.surface, elevation = 17.dp, reduceMotion = reduceMotion
     ) {
-        Row(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            listOf("Home", "Calendar", "Analysis", "Settings").forEachIndexed { index, item ->
+        val haptic = LocalHapticFeedback.current
+        val dragThresholdPx = with(LocalDensity.current) { 48.dp.toPx() }
+        Row(
+            Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 7.dp)
+                .pointerInput(hapticsEnabled) {
+                    var dragTotal = 0f
+                    var startIndex = 0
+                    var currentIndex = 0
+                    detectHorizontalDragGestures(
+                        onDragStart = {
+                            dragTotal = 0f
+                            startIndex = navItems.indexOf(latestSelected).coerceAtLeast(0)
+                            currentIndex = startIndex
+                        },
+                        onHorizontalDrag = { change, amount ->
+                            change.consume()
+                            dragTotal += amount
+                            val direction = if (dragTotal < 0f) 1 else -1
+                            val steps = (kotlin.math.abs(dragTotal) / dragThresholdPx).toInt()
+                            val target = (startIndex + direction * steps).coerceIn(0, navItems.lastIndex)
+                            while (currentIndex != target) {
+                                currentIndex += if (target > currentIndex) 1 else -1
+                                latestOnSelect(navItems[currentIndex])
+                                if (hapticsEnabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    performKhataHaptic(context)
+                                }
+                            }
+                        },
+                        onDragEnd = { dragTotal = 0f },
+                        onDragCancel = { dragTotal = 0f }
+                    )
+                },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            navItems.forEachIndexed { index, item ->
                 val active = selected == item
                 val width by animateDpAsState(if (active) 112.dp else 48.dp, animationSpec = if (reduceMotion) snap() else spring(dampingRatio = .72f, stiffness = 440f), label = "nav-width-$item")
                 val icon = when (item) {
@@ -403,7 +470,7 @@ private fun SpendingSummaryCard(spent: Long, budget: Long, reduceMotion: Boolean
     DewSurface(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).animateContentSize(),
         shape = RoundedCornerShape(32.dp), zIndex = 10f,
-        tone = MaterialTheme.colorScheme.surface, elevation = 18.dp, reduceMotion = reduceMotion
+        tone = MaterialTheme.colorScheme.surface.copy(alpha = .84f), elevation = 20.dp, reduceMotion = reduceMotion
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 22.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -435,9 +502,8 @@ private fun SpendingSummaryCard(spent: Long, budget: Long, reduceMotion: Boolean
 @Composable
 private fun QuoteBanner(text: String, reduceMotion: Boolean) {
     DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(24.dp), zIndex = 11f, tone = MaterialTheme.colorScheme.surface, elevation = 11.dp, reduceMotion = reduceMotion) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Text("A LITTLE NOTE", style = MaterialTheme.typography.labelMedium, letterSpacing = 1.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            Text(text, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 21.sp, lineHeight = 25.sp, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(top = 3.dp))
+        Box(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 15.dp), contentAlignment = Alignment.CenterStart) {
+            Text(text, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 25.sp, lineHeight = 31.sp, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -578,18 +644,75 @@ private fun AnalysisScreen(transactions: List<TransactionEntity>, categories: Li
                         Text(money(entry.value), fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
                     }
                 }
-                Spacer(Modifier.height(16.dp)); SectionTitle("Category breakdown")
-                val total = byCategory.sumOf { it.value }.coerceAtLeast(1)
-                byCategory.forEach { item ->
-                    Row(Modifier.fillMaxWidth().clickable { onCategory(item.key) }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        CategoryIcon(item.key, Modifier.size(22.dp)); Spacer(Modifier.width(10.dp))
-                        Column(Modifier.weight(1f)) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(KhataCategories.names[item.key] ?: item.key); Text(money(item.value), style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum")) }
-                            LinearProgressIndicator(progress = { (item.value.toFloat() / total).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().padding(top = 5.dp).height(5.dp).clip(CircleShape), color = categoryAccent(item.key), trackColor = MaterialTheme.colorScheme.surfaceVariant)
+                Spacer(Modifier.height(20.dp)); SectionTitle("How you spent")
+                val total = byCategory.sumOf { it.value }.coerceAtLeast(0L)
+                if (byCategory.isEmpty()) {
+                    DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(28.dp), tone = MaterialTheme.colorScheme.surface.copy(alpha = .80f), elevation = 13.dp) {
+                        Text("Your category picture will build as you add expenses.", Modifier.padding(20.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(30.dp), tone = MaterialTheme.colorScheme.surface.copy(alpha = .80f), elevation = 17.dp) {
+                        Column(Modifier.fillMaxWidth().padding(18.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(132.dp), contentAlignment = Alignment.Center) {
+                                    CategoryDonut(byCategory.map { it.key to it.value }, total)
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("TOTAL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
+                                        Text(moneyShort(total), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, maxLines = 1)
+                                    }
+                                }
+                                Spacer(Modifier.width(18.dp))
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(11.dp)) {
+                                    byCategory.take(3).forEach { item ->
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(Modifier.size(10.dp).clip(CircleShape).background(categoryAccent(item.key)))
+                                            Spacer(Modifier.width(8.dp))
+                                            Column(Modifier.weight(1f)) {
+                                                Text(KhataCategories.names[item.key] ?: item.key, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                Text("${(item.value.toDouble() * 100.0 / total.toDouble()).toInt()}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.height(14.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = .72f))
+                            Spacer(Modifier.height(6.dp))
+                            byCategory.forEach { item ->
+                                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).clickable { onCategory(item.key) }.padding(vertical = 10.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    CategoryIcon(item.key, Modifier.size(22.dp)); Spacer(Modifier.width(10.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text(KhataCategories.names[item.key] ?: item.key, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            Text(money(item.value), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"))
+                                        }
+                                        LinearProgressIndicator(progress = { (item.value.toFloat() / total.toFloat()).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(7.dp).clip(CircleShape), color = categoryAccent(item.key), trackColor = MaterialTheme.colorScheme.surfaceVariant)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 Spacer(Modifier.height(90.dp))
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun CategoryDonut(items: List<Pair<String, Long>>, total: Long) {
+    val track = MaterialTheme.colorScheme.surfaceVariant
+    val segments = items.map { categoryAccent(it.first) to it.second }
+    Canvas(Modifier.fillMaxSize()) {
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = 16.dp.toPx(), cap = StrokeCap.Round)
+        drawArc(track, -90f, 360f, false, style = stroke)
+        if (total > 0L) {
+            var start = -90f
+            segments.forEach { (color, amount) ->
+                val sweep = (amount.toDouble() / total.toDouble() * 360.0).toFloat().coerceAtLeast(1.2f)
+                drawArc(color, start, (sweep - 2.5f).coerceAtLeast(.4f), false, style = stroke)
+                start += sweep
             }
         }
     }
@@ -675,6 +798,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
     var clearConfirm by remember { mutableStateOf(false) }
     var notificationsEnabled by remember { mutableStateOf(NotificationHelper.canNotify(context)) }
     var toastMessage by remember { mutableStateOf("") }
+    var showWidgetPicker by remember { mutableStateOf(false) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         notificationsEnabled = granted && NotificationHelper.canNotify(context)
         if (notificationsEnabled) NotificationHelper.showPermissionSuccess(context)
@@ -690,8 +814,8 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Read in English letters", Modifier.weight(1f)); Switch(settings.romanScript, { viewModel.roman(it) }) }
         Spacer(Modifier.height(12.dp)); SectionTitle("Appearance")
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
-        Text("Warm paper · Ember accent · one consistent palette", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "WALLPAPER" to "Wallpaper", "LIGHT" to "Light", "DARK" to "Dark").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
+        Text(if (settings.themeMode == "WALLPAPER") "Uses Android wallpaper colors on Android 12+; other versions use Khata’s accessible palette." else "Theme-aware ink, accessible contrast and one warm Ember palette.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Reduce motion", Modifier.weight(1f)); listOf("FOLLOW_SYSTEM", "ON", "OFF").forEach { value -> FilterChip(selected = settings.reduceMotion == value, onClick = { viewModel.motion(value) }, label = { Text(when (value) { "FOLLOW_SYSTEM" -> "Auto"; else -> value.lowercase().replaceFirstChar { it.uppercase() } }) }) } }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Haptics", Modifier.weight(1f)); Switch(settings.hapticsEnabled, { viewModel.haptics(it) }) }
         Spacer(Modifier.height(10.dp)); SectionTitle("Smart nudges")
@@ -722,10 +846,33 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }
         if (!notificationsEnabled) Text("You can turn alerts off any time in Android Settings.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         Spacer(Modifier.height(14.dp)); SectionTitle("Home screen")
-        DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(52.dp), shape = RoundedCornerShape(26.dp), zIndex = 42f, tone = MaterialTheme.colorScheme.primaryContainer, elevation = 10.dp, reduceMotion = reduceMotion, onClick = { pinKhataWidget(context) }) {
-            Row(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) { Icon(Icons.Outlined.Widgets, null, tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(9.dp)); Text("Add Khata spending widget", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold) }
+        DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(54.dp), shape = RoundedCornerShape(27.dp), zIndex = 42f, tone = MaterialTheme.colorScheme.primaryContainer, elevation = 13.dp, reduceMotion = reduceMotion, onClick = { showWidgetPicker = true }) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) { Icon(Icons.Outlined.Widgets, null, tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(9.dp)); Text("Choose a Khata widget", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold) }
         }
-        Text("Choose a daily, weekly, monthly, or all-time view for each widget. Resize it to choose compact, standard, or large layouts. Updates after entries and hourly.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
+        Text("Add Daily, Weekly, Monthly, All-time, Budget ring, or Quote as a separate home-screen widget. Widgets refresh after entries and periodically.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
+        if (showWidgetPicker) AlertDialog(
+            onDismissRequest = { showWidgetPicker = false },
+            title = { Text("Choose a widget") },
+            text = {
+                Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                    HomeWidgetChoice.entries.forEach { choice ->
+                        TextButton(
+                            onClick = {
+                                pinKhataWidget(context, choice.provider)
+                                showWidgetPicker = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.fillMaxWidth()) {
+                                Text(choice.title, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+                                Text(choice.description, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showWidgetPicker = false }) { Text("Close") } }
+        )
         Spacer(Modifier.height(12.dp)); SectionTitle("Accounts")
         if (accounts.isEmpty()) Text("Loading accounts…", color = MaterialTheme.colorScheme.onSurfaceVariant)
         accounts.forEach { account ->
@@ -752,7 +899,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }, modifier = Modifier.fillMaxWidth()) { Text("Export CSV · ${transactions.size} transactions") }
         OutlinedButton(onClick = { toastMessage = "CSV import is planned; your local data has not changed." }, modifier = Modifier.fillMaxWidth()) { Text("Import CSV") }
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
-        Text("Khata 2.0.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Khata 2.1.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Your transaction data stays on this device.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))
@@ -938,12 +1085,20 @@ private fun shouldReduceMotion(mode: String): Boolean {
     return runCatching { AndroidSettings.Global.getFloat(context.contentResolver, AndroidSettings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }.getOrDefault(false)
 }
 
-private fun pinKhataWidget(context: android.content.Context) {
+private enum class HomeWidgetChoice(val title: String, val description: String, val provider: Class<out AppWidgetProvider>) {
+    DAILY("Daily spending", "Today’s net spend." , KhataDailyWidgetProvider::class.java),
+    WEEKLY("Weekly spending", "Rolling last seven days.", KhataWeeklyWidgetProvider::class.java),
+    MONTHLY("Monthly spending", "Current calendar month.", KhataMonthlyWidgetProvider::class.java),
+    ALL_TIME("All-time spending", "All recorded expenses and refunds.", KhataAllTimeWidgetProvider::class.java),
+    PROGRESS_RING("Budget progress ring", "A live ring against your monthly budget.", KhataProgressRingWidgetProvider::class.java),
+    QUOTE("Quote of the day", "A short line in your chosen app language.", KhataQuoteWidgetProvider::class.java)
+}
+
+private fun pinKhataWidget(context: android.content.Context, provider: Class<out AppWidgetProvider>) {
     val manager = AppWidgetManager.getInstance(context)
-    val provider = ComponentName(context, KhataHomeWidgetProvider::class.java)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && manager.isRequestPinAppWidgetSupported) {
-        val accepted = manager.requestPinAppWidget(provider, null, null)
-        if (!accepted) Toast.makeText(context, "Open your launcher's Widgets list to add Khata.", Toast.LENGTH_LONG).show()
+        val accepted = manager.requestPinAppWidget(ComponentName(context, provider), null, null)
+        if (!accepted) Toast.makeText(context, "Open your launcher’s Widgets list to add Khata.", Toast.LENGTH_LONG).show()
     } else Toast.makeText(context, "Long-press your home screen, then choose Widgets → Khata.", Toast.LENGTH_LONG).show()
 }
 

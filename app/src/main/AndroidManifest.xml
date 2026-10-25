@@ -18,6 +18,30 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_khata_info" />
         </receiver>
+        <receiver android:name=".widget.KhataDailyWidgetProvider" android:exported="true" android:label="Khata · Daily total">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_daily_info" />
+        </receiver>
+        <receiver android:name=".widget.KhataWeeklyWidgetProvider" android:exported="true" android:label="Khata · Weekly total">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_weekly_info" />
+        </receiver>
+        <receiver android:name=".widget.KhataMonthlyWidgetProvider" android:exported="true" android:label="Khata · Monthly total">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_monthly_info" />
+        </receiver>
+        <receiver android:name=".widget.KhataAllTimeWidgetProvider" android:exported="true" android:label="Khata · All-time total">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_all_time_info" />
+        </receiver>
+        <receiver android:name=".widget.KhataProgressRingWidgetProvider" android:exported="true" android:label="Khata · Budget ring">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_progress_ring_info" />
+        </receiver>
+        <receiver android:name=".widget.KhataQuoteWidgetProvider" android:exported="true" android:label="Khata · Quote">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quote_info" />
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -1,22 +1,17 @@
-# Movie quote sourcing
+# Khata quote catalog sourcing
 
-This file records the source pages checked for the compact in-app quote catalog. Only verified original-language excerpts are included in the app. Film/source metadata remains in `app/src/main/res/raw/quotes.json`; the app UI displays only the spoken quote and never shows these notes.
+The app stores short, attribution-linked excerpts in the original language/script. Every entry has its film title, source URL and original-language text; the user-facing app displays only the line (no translation/commentary). The following pages were opened and checked against the catalog text. Excerpts are intentionally short.
 
-## Hindi
+- Hindi: NDTV’s Amitabh Bachchan dialogue list (including *Kabhi Khushi Kabhie Gham*, *Pink*, *Wazir*, *Sarkar*, *Trishul*) and Jagran’s *Deewaar* dialogue article.
+  - https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024
+  - https://www.jagran.com/entertainment/bollywood-deewaar-movie-scene-after-which-amitabh-bachchan-locked-himself-in-room-for-15-hours-know-complete-story-23663664.html
+- Telugu: Chitrajyothy/ABN’s *Lucky Baskhar* dialogues list, published 16 December 2024.
+  - https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html
+- Tamil: Kalaignar Seithigal’ five-year retrospective for *Sathuranga Vettai*, published 18 July 2019. The film’s scam-focused context is preserved in attribution; these lines are cinematic flavor, not financial guidance.
+  - https://www.kalaignarseithigal.com/cinema/2019/07/18/5-years-of-sathuranga-vettai
+- Malayalam: Asianet News Malayalam’s list of memorable Mohanlal lines; the list provides Malayalam script and film names.
+  - https://www.asianetnews.com/entertainment/super-hit-dialogues-of-mohanlal
+- Kannada: Kannada Filmibeat’s roundup of memorable 2019 film dialogues, published 11 January 2020.
+  - https://kannada.filmibeat.com/features/best-sounding-dialogues-of-kannada-films-2019-040507.html
 
-- Quote: “पैसा तो हर कोई कमा लेता है” (a verbatim short excerpt from the printed line) — *कभी खुशी कभी गम* (2001). Source page: [NDTV Hindi — Amitabh Bachchan dialogue list](https://ndtv.in/bollywood/10-iconic-dialogues-shahenshah-of-bollywood-amitabh-bachchan-5031024). The article prints the Devanagari line under the film heading. Romanization in the app is phonetic only, not an English translation.
-
-## Telugu
-
-All three following short excerpts are printed in a published *Lucky Baskhar* (2024) dialogue list. The source list also provides longer context; the app uses brief direct excerpts only.
-
-- “రూపాయి రూపాయి దాచుకుంటాం..” — [Chitrajyothy — Lucky Baskhar dialogues](https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html).
-- “ఒక్క రూపాయి కూడా మిగలకుండా ఖర్చు పెట్టేస్తాం సార్..” — [Chitrajyothy — Lucky Baskhar dialogues](https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html).
-- “డబ్బుంటేనే మర్యాద.. ప్రేమ..” — [Chitrajyothy — Lucky Baskhar dialogues](https://www.chitrajyothy.com/2024/tollywood/lucky-baskhar-dialogues-20-motivational-quotes-for-middle-class-mnm-59519.html).
-
-## No qualifying line found yet
-
-The research pass did not establish an exact, independently verifiable original-language financial dialogue line for Tamil, Malayalam, or Kannada. It specifically rejected translated, romanized-only, social-media reposts, fan lists without reliable attribution, and inferred/transcribed dialogue. Those locales intentionally show no quote rather than translating another language or inventing a line. Add quotes only after verifying exact text and film attribution from a suitable source.
-
-- Tamil candidates surfaced in social reposts or English translation. A checked [The Hindu cinema article](https://www.thehindu.com/entertainment/movies/cinema-for-a-cause/article24639454.ece) discussed films but did not give qualifying exact Tamil script.
-- Kannada search found an informal social repost for a close candidate, which was not used. The checked [Filmibeat review of Director’s Special](https://kannada.filmibeat.com/reviews/kannada-film-directors-special-review-074498.html) contained transcribed lines but none met the money theme.
+Roman forms are editorial transliterations for the app’s English-letter preference; native scripts remain the default.

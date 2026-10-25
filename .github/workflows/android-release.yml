@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           if grep -R -n -i -E 'haze(source|effect|child|state)|rememberhazestate|chrisbanes\.haze' app/src/main/java app/build.gradle.kts; then
-            echo "Haze APIs are disabled in 2.0.0 because they caused a confirmed renderer crash."
+            echo "Haze rendering APIs are intentionally excluded after a confirmed renderer crash."
             exit 1
           fi
       - name: Run unit tests
@@ -88,9 +88,10 @@ jobs:
             fi
             echo
             echo "### Highlights"
-            echo "- Removed the Haze runtime and dependency entirely after reproducing a source/child rendering crash; surfaces retain safe static glass-inspired gradients."
-            echo "- Onboarding now inherits a theme-aware high-contrast foreground in light and dark modes."
-            echo "- Includes daily/weekly/monthly/all-time widgets, quote rotation, optional notifications, and local-first records."
+            echo "- Polished the analysis dashboard with a category donut, clearer totals, accessible light/dark text contrast, shadows, and motion-safe navigation feedback."
+            echo "- Added six independently selectable Android widgets: daily, weekly, monthly, all-time, budget progress ring, and quote."
+            echo "- Added Android wallpaper-derived colors (with an accessible fallback) and expanded quote-only native-language movie dialogue rotation across Hindi, Telugu, Tamil, Malayalam, and Kannada."
+            echo "- Hardened widget data/error handling and added budget progress/date-range regression tests; the app remains offline-first."
             echo "- See the repository README for the concise feature list."
           } > "$RUNNER_TEMP/release-notes.md"
       - name: Publish or update GitHub release

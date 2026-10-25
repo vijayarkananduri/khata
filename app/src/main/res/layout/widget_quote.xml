@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_quote_card" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/widget_card_bg" android:padding="18dp">
+    <TextView android:id="@+id/widget_quote_text" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:text="Open Khata for a fresh line." android:textColor="#FF28231E" android:textSize="20sp" android:textStyle="bold" android:maxLines="4" android:ellipsize="end"/>
+</FrameLayout>

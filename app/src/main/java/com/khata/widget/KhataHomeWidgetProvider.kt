@@ -22,7 +22,7 @@ import java.text.NumberFormat
 import java.time.LocalDate
 import java.util.Locale
 
-internal enum class WidgetPeriod(val key: String, val label: String, val caption: String) {
+enum class WidgetPeriod(val key: String, val label: String, val caption: String) {
     DAY("DAY", "TODAY", "today"),
     WEEK("WEEK", "LAST 7 DAYS", "last 7 days"),
     MONTH("MONTH", "THIS MONTH", "this month"),
@@ -113,6 +113,7 @@ class KhataHomeWidgetProvider : AppWidgetProvider() {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, KhataHomeWidgetProvider::class.java))
             if (ids.isNotEmpty()) refresh(context, manager, ids, null)
+            WidgetRefresh.refreshInstalled(context)
         }
 
         private fun refresh(
