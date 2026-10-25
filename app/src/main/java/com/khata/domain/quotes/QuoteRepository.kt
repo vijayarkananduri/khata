@@ -10,6 +10,13 @@ import javax.inject.Singleton
 
 data class InAppQuote(val text: String)
 
+object QuoteRotation {
+    const val DEFAULT_INTERVAL_MS = 12 * 60 * 60 * 1000L
+
+    fun shouldRotate(lastShownAtMillis: Long, nowMillis: Long, intervalMillis: Long = DEFAULT_INTERVAL_MS): Boolean =
+        lastShownAtMillis <= 0L || nowMillis < lastShownAtMillis || nowMillis - lastShownAtMillis >= intervalMillis
+}
+
 @Singleton
 class QuoteRepository @Inject constructor(private val context: Context) {
     private val catalog: JSONObject by lazy {
@@ -21,8 +28,7 @@ class QuoteRepository @Inject constructor(private val context: Context) {
         val lang = catalog.optJSONObject("languages")?.optJSONObject(language) ?: return ""
         val array = lang.optJSONArray("splashQuotes")
         if (array == null || array.length() == 0) return ""
-        val chosen = choose(language, (0 until array.length()).map { array.getJSONObject(it) })
-            ?: return ""
+        val chosen = choose(language, (0 until array.length()).map { array.getJSONObject(it) }) ?: return ""
         return chosen.optString(if (roman) "roman" else "native")
     }
 
@@ -33,7 +39,19 @@ class QuoteRepository @Inject constructor(private val context: Context) {
         val selected = (all.filter { it.optString("trigger") == trigger } + all.filter { it.optString("trigger") == "DAILY_NOTE" })
             .distinctBy { it.optString("id") }
         if (selected.isEmpty()) return null
-        val item = choose(language, selected) ?: return null
+
+        val idKey = "active_id_$language"
+        val timeKey = "active_at_$language"
+        val activeId = history.getString(idKey, null)
+        val activeAt = history.getLong(timeKey, 0L)
+        val active = all.firstOrNull { it.optString("id") == activeId }
+        val now = System.currentTimeMillis()
+        if (active != null && !QuoteRotation.shouldRotate(activeAt, now)) {
+            return InAppQuote(active.optString(if (roman) "roman" else "native"))
+        }
+
+        val item = choose(language, selected) ?: active ?: selected.first()
+        history.edit().putString(idKey, item.optString("id")).putLong(timeKey, now).apply()
         return InAppQuote(item.optString(if (roman) "roman" else "native"))
     }
 

@@ -56,6 +56,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationManagerCompat
 import com.khata.data.db.AccountEntity
@@ -86,15 +89,19 @@ fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val quoteRepo = rememberQuoteRepo()
     val splashQuote = remember(settings.language, settings.romanScript) { quoteRepo.splashText(settings.language, settings.romanScript) }
+    val hazeState = rememberKhataHazeState()
     KhataTheme(settings.themeMode) {
-        var splash by remember { mutableStateOf(true) }
-        LaunchedEffect(Unit) { delay(1500); splash = false }
-        Box(Modifier.fillMaxSize()) {
-            if (!settings.onboardingComplete) OnboardingScreen(onFinish = viewModel::finishOnboarding) else MainShell(viewModel, settings)
-            if (splash && splashQuote.isNotBlank()) {
-                Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Text("KHATA", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
-                    Spacer(Modifier.height(28.dp)); Text(splashQuote, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 30.sp, lineHeight = 38.sp, color = MaterialTheme.colorScheme.onBackground, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        CompositionLocalProvider(LocalKhataHazeState provides hazeState) {
+            var splash by remember { mutableStateOf(true) }
+            LaunchedEffect(Unit) { delay(1500); splash = false }
+            Box(Modifier.fillMaxSize()) {
+                DewBackdrop(hazeState)
+                if (!settings.onboardingComplete) OnboardingScreen(onFinish = viewModel::finishOnboarding) else MainShell(viewModel, settings)
+                if (splash && splashQuote.isNotBlank()) {
+                    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        Text("KHATA", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+                        Spacer(Modifier.height(28.dp)); Text(splashQuote, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 30.sp, lineHeight = 38.sp, color = MaterialTheme.colorScheme.onBackground, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
                 }
             }
         }
@@ -118,7 +125,7 @@ private fun OnboardingScreen(onFinish: (String, String, Boolean, Long) -> Unit) 
             Spacer(Modifier.height(24.dp))
             Text("Your money, a little clearer.", fontFamily = CaveatFamily, fontSize = 26.sp, lineHeight = 34.sp, color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(12.dp))
-            Text("Every rupee, in its place.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
+            Text("Every rupee, in its place.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
             Spacer(Modifier.height(36.dp))
             when (step) {
                 0 -> {
@@ -159,10 +166,14 @@ private fun OnboardingScreen(onFinish: (String, String, Boolean, Long) -> Unit) 
                 repeat(5) { index -> Box(Modifier.size(if (index == step) 24.dp else 8.dp, 8.dp).clip(CircleShape).background(if (index == step) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)) }
             }
             Spacer(Modifier.height(16.dp))
-            Button(onClick = {
-                if (step < 4) step++ else onFinish(username, language, roman, ((budget.toDoubleOrNull() ?: 0.0) * 100).toLong())
-            }, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(18.dp)) {
-                Text(if (step == 4) "Open Khata" else "Continue")
+            DewSurface(
+                modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(28.dp),
+                zIndex = 42f, tone = MaterialTheme.colorScheme.primaryContainer, elevation = 12.dp,
+                onClick = { if (step < 4) step++ else onFinish(username, language, roman, ((budget.toDoubleOrNull() ?: 0.0) * 100).toLong()) }
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(if (step == 4) "Open Khata" else "Continue", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
             }
             if (step == 3) TextButton(onClick = { budget = ""; step = 4 }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text("Skip budget") }
         }
@@ -185,14 +196,21 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
 
     Box(Modifier.fillMaxSize()) {
         Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = Color.Transparent,
             floatingActionButton = {
                 if (!showReview && selectedCategory == null) {
-                    FloatingActionButton(onClick = {
-                        if (settings.hapticsEnabled) performKhataHaptic(context)
-                        showAdd = true
-                    }, containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary, shape = RoundedCornerShape(20.dp)) {
-                        Icon(Icons.Outlined.Add, contentDescription = "Add transaction")
+                    DewSurface(
+                        modifier = Modifier.size(62.dp), shape = CircleShape, zIndex = 80f,
+                        tone = MaterialTheme.colorScheme.primaryContainer, elevation = 16.dp,
+                        reduceMotion = shouldReduceMotion(settings.reduceMotion),
+                        onClick = {
+                            if (settings.hapticsEnabled) performKhataHaptic(context)
+                            showAdd = true
+                        }
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Outlined.Add, contentDescription = "Add transaction", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(30.dp))
+                        }
                     }
                 }
             },
@@ -202,13 +220,12 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 when {
-                    showReview -> ReviewScreen(queue, categories.map { it.id to it.name }, onBack = { showReview = false }, onCorrect = viewModel::correct, onTransfer = viewModel::markTransfer, onIgnore = viewModel::ignore)
+                    showReview -> ReviewScreen(queue, categories.map { it.id to it.name }, shouldReduceMotion(settings.reduceMotion), onBack = { showReview = false }, onCorrect = viewModel::correct, onTransfer = viewModel::markTransfer, onIgnore = viewModel::ignore)
                     selectedCategory != null -> CategoryDetailScreen(selectedCategory!!, transactions, onBack = { selectedCategory = null }, onTransaction = { selectedTransaction = it })
                     tab == "Home" -> HomeScreen(
                         transactions = transactions, settings = settings, reviewCount = queue.size,
                         onReview = { showReview = true }, onSearch = { showSearch = true },
-                        onCategory = { selectedCategory = it }, onTransaction = { selectedTransaction = it },
-                        onCompareMode = viewModel::compare
+                        onTransaction = { selectedTransaction = it }
                     )
                     tab == "Calendar" -> CalendarScreen(transactions, onTransaction = { selectedTransaction = it })
                     tab == "Analysis" -> AnalysisScreen(transactions, categories.map { it.id to it.name }, onTransaction = { selectedTransaction = it }, onCategory = { selectedCategory = it })
@@ -217,7 +234,7 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
             }
         }
     }
-    if (showAdd) QuickAddDialog(accounts, onDismiss = { showAdd = false }, onSave = { merchant, amount, direction, date, note, category, accountId ->
+    if (showAdd) QuickAddDialog(accounts, reduceMotion = shouldReduceMotion(settings.reduceMotion), onDismiss = { showAdd = false }, onSave = { merchant, amount, direction, date, note, category, accountId ->
         if (settings.hapticsEnabled) performKhataHaptic(context)
         viewModel.addTransaction(merchant, amount, direction, date, note, category, accountId)
         showAdd = false
@@ -232,43 +249,54 @@ private fun MainShell(viewModel: KhataViewModel, settings: UserSettings) {
 @Composable
 private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabled: Boolean, onSelect: (String) -> Unit) {
     val context = LocalContext.current
-    Surface(
-        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 8.dp).height(68.dp),
-        color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        shape = RoundedCornerShape(28.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = .07f)),
-        shadowElevation = 8.dp
+    DewSurface(
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 12.dp).height(68.dp),
+        shape = RoundedCornerShape(32.dp), zIndex = 90f,
+        tone = MaterialTheme.colorScheme.surface, elevation = 17.dp, reduceMotion = reduceMotion
     ) {
-        Row(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            listOf("Home", "Calendar", "Analysis", "Settings").forEach { item ->
+        Row(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            listOf("Home", "Calendar", "Analysis", "Settings").forEachIndexed { index, item ->
                 val active = selected == item
-                val width by animateDpAsState(if (active) 112.dp else 48.dp, animationSpec = if (reduceMotion) snap() else spring(dampingRatio = .78f, stiffness = 420f), label = "nav-width-$item")
+                val width by animateDpAsState(if (active) 112.dp else 48.dp, animationSpec = if (reduceMotion) snap() else spring(dampingRatio = .72f, stiffness = 440f), label = "nav-width-$item")
                 val icon = when (item) {
                     "Home" -> Icons.Outlined.Home
                     "Calendar" -> Icons.Outlined.CalendarMonth
                     "Analysis" -> Icons.Outlined.BarChart
                     else -> Icons.Outlined.Settings
                 }
-                Surface(
-                    onClick = {
-                        if (selected != item) {
-                            if (hapticsEnabled) performKhataHaptic(context)
-                            onSelect(item)
-                        }
-                    },
-                    modifier = Modifier.width(width).height(54.dp),
-                    color = if (active) MaterialTheme.colorScheme.primary else Color.Transparent,
-                    contentColor = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    shape = RoundedCornerShape(27.dp)
-                ) {
-                    Row(Modifier.fillMaxSize().padding(horizontal = if (active) 14.dp else 0.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Icon(icon, contentDescription = item, modifier = Modifier.size(21.dp))
-                        AnimatedVisibility(active) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Spacer(Modifier.width(8.dp))
-                                Text(item, maxLines = 1, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                val select = {
+                    if (selected != item) {
+                        if (hapticsEnabled) performKhataHaptic(context)
+                        onSelect(item)
+                    }
+                }
+                if (active) {
+                    DewSurface(
+                        modifier = Modifier.width(width).height(52.dp),
+                        shape = RoundedCornerShape(26.dp), zIndex = 101f + index,
+                        tone = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .78f),
+                        elevation = 7.dp, reduceMotion = reduceMotion, onClick = select
+                    ) {
+                        Row(Modifier.fillMaxSize().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                            Icon(icon, contentDescription = item, modifier = Modifier.size(21.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            AnimatedVisibility(active) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(item, maxLines = 1, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                }
                             }
+                        }
+                    }
+                } else {
+                    Surface(
+                        onClick = select,
+                        modifier = Modifier.width(width).height(52.dp),
+                        color = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        shape = RoundedCornerShape(26.dp)
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Icon(icon, contentDescription = item, modifier = Modifier.size(22.dp))
                         }
                     }
                 }
@@ -280,32 +308,32 @@ private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabl
 @Composable
 private fun HomeScreen(
     transactions: List<TransactionEntity>, settings: UserSettings, reviewCount: Int,
-    onReview: () -> Unit, onSearch: () -> Unit, onCategory: (String) -> Unit,
-    onTransaction: (TransactionEntity) -> Unit, onCompareMode: (Boolean) -> Unit
+    onReview: () -> Unit, onSearch: () -> Unit,
+    onTransaction: (TransactionEntity) -> Unit
 ) {
     val reduceMotion = shouldReduceMotion(settings.reduceMotion)
     val today = LocalDate.now()
-    var period by rememberSaveable { mutableStateOf("MONTH") }
-    val selectedPeriod = SpendPeriod.fromKey(period)
+    val budgetMode = settings.monthlyBudgetPaise > 0L
+    val selectedPeriod = if (budgetMode) SpendPeriod.MONTH else SpendPeriod.DAY
     val currentRange = SpendPeriodRanges.current(selectedPeriod, today)
-    val previousRange = SpendPeriodRanges.previous(selectedPeriod, today)
-    val periodLabel = selectedPeriod.label
-    val previousLabel = when (selectedPeriod) { SpendPeriod.DAY -> "previous day"; SpendPeriod.WEEK -> "previous 7 days"; SpendPeriod.MONTH -> "previous month" }
     val qualifying = transactions.filter { it.type == "EXPENSE" || it.type == "REFUND" }
-    val periodTransactions = qualifying.filter { currentRange.contains(it.date) }
-    val currentSpend = netSpend(periodTransactions)
-    val previousSpend = netSpend(qualifying.filter { previousRange.contains(it.date) })
-    val top = periodTransactions.filter { it.type == "EXPENSE" }.groupBy { it.categoryId }
-        .mapValues { (_, list) -> list.sumOf { it.amountPaise } }.entries.sortedByDescending { it.value }.take(3)
+    val currentSpend = netSpend(qualifying.filter { currentRange.contains(it.date) })
     val quoteRepo = rememberQuoteRepo()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var resumeToken by remember { mutableIntStateOf(0) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) resumeToken++
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     val trigger = when {
         transactions.isEmpty() -> "EMPTY_STATE"
-        period == "MONTH" && settings.monthlyBudgetPaise > 0 && currentSpend > settings.monthlyBudgetPaise -> "OVERSPEND"
-        previousSpend > 0 && currentSpend > previousSpend * 1.05 -> "OVERSPEND"
-        previousSpend > 0 && currentSpend < previousSpend * 0.95 -> "ON_TRACK"
+        budgetMode && currentSpend > settings.monthlyBudgetPaise -> "OVERSPEND"
         else -> "DAILY_NOTE"
     }
-    val quote = remember(settings.language, settings.romanScript, trigger, today.toString(), period) {
+    val quote = remember(settings.language, settings.romanScript, trigger, resumeToken) {
         quoteRepo.forTrigger(settings.language, trigger, settings.romanScript)
     }
     val hour = java.time.LocalTime.now().hour
@@ -314,127 +342,101 @@ private fun HomeScreen(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
-                Text(greeting, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 27.sp, color = MaterialTheme.colorScheme.primary)
-                Text("@${settings.username.ifBlank { "there" }}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(greeting, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 29.sp, color = MaterialTheme.colorScheme.primary)
+                Text("${settings.username.ifBlank { "Hello there" }}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onSearch, modifier = Modifier.size(48.dp)) { Icon(Icons.Outlined.Search, contentDescription = "Search transactions") }
         }
-        Spacer(Modifier.height(8.dp))
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("DAY" to "Daily", "WEEK" to "Weekly", "MONTH" to "Monthly").forEach { (key, label) ->
-                FilterChip(selected = period == key, onClick = { period = key }, label = { Text(label) })
-            }
-        }
-        quote?.let { QuoteBanner(it.text) }
-        Spacer(Modifier.height(10.dp))
-        if (period == "MONTH") {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                FilterChip(selected = !settings.compareMode, onClick = { onCompareMode(false) }, label = { Text("Budget") })
-                Spacer(Modifier.width(8.dp))
-                FilterChip(selected = settings.compareMode, onClick = { onCompareMode(true) }, label = { Text("Compare") })
-            }
-        }
-        val budgetMode = period == "MONTH" && !settings.compareMode && settings.monthlyBudgetPaise > 0
-        val canShow = budgetMode || previousSpend > 0 || currentSpend > 0
-        Spacer(Modifier.height(4.dp))
-        if (canShow) {
-            val fraction = if (budgetMode) (currentSpend.toFloat() / settings.monthlyBudgetPaise.coerceAtLeast(1)).coerceIn(0f, 1f)
-            else if (previousSpend == 0L && currentSpend > 0L) 1f else if (maxOf(currentSpend, previousSpend) == 0L) 0f else (minOf(currentSpend, previousSpend).toFloat() / maxOf(currentSpend, previousSpend)).coerceIn(0f, 1f)
-            val ringColor = if (budgetMode) when { fraction < .75f -> MaterialTheme.colorScheme.secondary; fraction < 1f -> MaterialTheme.colorScheme.tertiary; else -> MaterialTheme.colorScheme.error }
-            else when { previousSpend > 0 && currentSpend > previousSpend * 1.5 -> MaterialTheme.colorScheme.error; currentSpend < previousSpend * .95 -> MaterialTheme.colorScheme.secondary; currentSpend > previousSpend * 1.05 -> MaterialTheme.colorScheme.primary; else -> MaterialTheme.colorScheme.tertiary }
-            val caption = when {
-                budgetMode -> "${(currentSpend * 100 / settings.monthlyBudgetPaise.coerceAtLeast(1)).coerceAtMost(999)}% of ${money(settings.monthlyBudgetPaise)}"
-                currentSpend == 0L && previousSpend == 0L -> "Add your first transaction"
-                currentSpend == 0L -> "No spending ${periodLabel.lowercase()} yet"
-                previousSpend == 0L -> "Your first recorded ${periodLabel.lowercase()}"
-                currentSpend < previousSpend * .95 -> "${percentLess(currentSpend, previousSpend)}% less than the $previousLabel"
-                currentSpend <= previousSpend * 1.05 -> "About the same as the $previousLabel"
-                currentSpend > previousSpend * 1.5 -> "${money(currentSpend - previousSpend)} more than the $previousLabel"
-                else -> "${percentMore(currentSpend, previousSpend)}% more than the $previousLabel"
-            }
-            RingCard(currentSpend, fraction, ringColor, caption, budgetMode, periodLabel, previousLabel, reduceMotion)
-        } else {
-            Text("Nothing recorded ${periodLabel.lowercase()} yet.", modifier = Modifier.fillMaxWidth().padding(vertical = 26.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-        }
+        quote?.let { QuoteBanner(it.text, reduceMotion) }
+        Spacer(Modifier.height(12.dp))
+        SpendingSummaryCard(currentSpend, if (budgetMode) settings.monthlyBudgetPaise else 0L, reduceMotion)
         if (reviewCount > 0) {
             Spacer(Modifier.height(12.dp))
-            Surface(onClick = onReview, color = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer, shape = RoundedCornerShape(18.dp), shadowElevation = 2.dp) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            DewSurface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), zIndex = 15f, tone = MaterialTheme.colorScheme.tertiaryContainer, elevation = 9.dp, reduceMotion = reduceMotion, onClick = onReview) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 15.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.WarningAmber, contentDescription = null); Spacer(Modifier.width(8.dp))
-                    Text("$reviewCount to review", fontWeight = FontWeight.Medium); Spacer(Modifier.weight(1f)); Icon(Icons.Outlined.ChevronRight, contentDescription = "Open review queue")
+                    Text("$reviewCount to review", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium); Spacer(Modifier.weight(1f)); Icon(Icons.Outlined.ChevronRight, contentDescription = "Open review queue")
                 }
             }
         }
         if (settings.nudgesEnabled) {
             NudgeCadence.due(transactions, today).firstOrNull()?.let { nudge ->
                 Spacer(Modifier.height(12.dp))
-                Surface(color = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer, shape = RoundedCornerShape(20.dp), shadowElevation = 2.dp) {
-                    Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.NotificationsActive, null); Spacer(Modifier.width(10.dp))
-                        Column { Text("A little heads-up", fontWeight = FontWeight.SemiBold); Text("${nudge.item}: your usual rhythm is about ${nudge.intervalDays} days. You may be running low.", fontSize = 13.sp) }
+                DewSurface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), zIndex = 16f, tone = MaterialTheme.colorScheme.secondaryContainer, elevation = 10.dp, reduceMotion = reduceMotion) {
+                    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.NotificationsActive, null, tint = MaterialTheme.colorScheme.secondary); Spacer(Modifier.width(12.dp))
+                        Column { Text("A little heads-up", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold); Text("${nudge.item}: your usual rhythm is about ${nudge.intervalDays} days. You may be running low.", style = MaterialTheme.typography.bodyMedium) }
                     }
                 }
             }
         }
-        Spacer(Modifier.height(18.dp))
-        SectionTitle("Top categories · ${periodLabel.lowercase()}")
-        if (top.isEmpty()) Text("Your category breakdown will appear here.", modifier = Modifier.padding(vertical = 14.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            val total = periodTransactions.filter { it.type == "EXPENSE" }.sumOf { it.amountPaise }.coerceAtLeast(1)
-            top.forEach { entry ->
-                val label = KhataCategories.names[entry.key] ?: entry.key
-                CategoryCard(entry.key, label, entry.value, (entry.value * 100 / total).toInt(), Modifier.weight(1f)) { onCategory(entry.key) }
-            }
-        }
-        Spacer(Modifier.height(22.dp)); SectionTitle("Recent")
+        Spacer(Modifier.height(22.dp)); SectionTitle("Recent activity")
         if (transactions.isEmpty()) Text("No transactions yet. Add one when you're ready.", modifier = Modifier.padding(vertical = 18.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        else transactions.take(5).forEach { TransactionRow(it, onClick = { onTransaction(it) }) }
+        else transactions.take(4).forEach { TransactionRow(it, onClick = { onTransaction(it) }) }
         Spacer(Modifier.height(90.dp))
     }
 }
 
 @Composable
-private fun RingCard(amount: Long, fraction: Float, color: Color, caption: String, budgetMode: Boolean, periodLabel: String, previousLabel: String, reduceMotion: Boolean) {
-    val animated by animateFloatAsState(targetValue = fraction, animationSpec = if (reduceMotion) snap() else tween(720), label = "ring")
-    val trackColor = MaterialTheme.colorScheme.surfaceVariant
-    Surface(Modifier.fillMaxWidth().padding(vertical = 8.dp).animateContentSize(), color = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface, shape = RoundedCornerShape(28.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = .65f)), shadowElevation = 5.dp) {
-        Column(Modifier.padding(horizontal = 18.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(214.dp), contentAlignment = Alignment.Center) {
-                Canvas(Modifier.fillMaxSize()) {
-                    val stroke = 15.dp.toPx()
-                    drawArc(color = trackColor, startAngle = -90f, sweepAngle = 360f, useCenter = false, style = Stroke(stroke, cap = StrokeCap.Round))
-                    drawArc(color = color, startAngle = -90f, sweepAngle = 360f * animated, useCenter = false, style = Stroke(stroke, cap = StrokeCap.Round))
+private fun SpendingSummaryCard(spent: Long, budget: Long, reduceMotion: Boolean) {
+    val hasBudget = budget > 0L
+    val progress = if (hasBudget) (spent.toFloat() / budget.toFloat()).coerceIn(0f, 1f) else 0f
+    val overBudget = hasBudget && spent > budget
+    val statusColor = if (overBudget) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+    val today = LocalDate.now()
+    val periodTitle = if (hasBudget) "THIS MONTH" else "TODAY"
+    DewSurface(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).animateContentSize(),
+        shape = RoundedCornerShape(32.dp), zIndex = 10f,
+        tone = MaterialTheme.colorScheme.surface, elevation = 18.dp, reduceMotion = reduceMotion
+    ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 22.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(periodTitle, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(5.dp))
+                    Text(money(spent), fontSize = 40.sp, lineHeight = 48.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"), maxLines = 1, softWrap = false)
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(money(amount), fontSize = 30.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
-                    Text(if (budgetMode) "spent this month" else periodLabel.lowercase(), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Box(Modifier.size(54.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = .78f)), contentAlignment = Alignment.Center) {
+                    Icon(if (hasBudget) Icons.Outlined.AccountBalanceWallet else Icons.Outlined.WbSunny, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
                 }
             }
-            Text(caption, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 22.sp, lineHeight = 27.sp, color = color, modifier = Modifier.padding(top = 6.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            if (!budgetMode && amount > 0) Text("Compared with the $previousLabel", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+            Spacer(Modifier.height(15.dp))
+            if (hasBudget) {
+                LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape), color = statusColor, trackColor = MaterialTheme.colorScheme.surfaceVariant)
+                Spacer(Modifier.height(10.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (overBudget) "Over budget by ${money(spent - budget)}" else "${money((budget - spent).coerceAtLeast(0L))} left", style = MaterialTheme.typography.bodyMedium, color = if (overBudget) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.weight(1f))
+                    Text("of ${money(budget)}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                Text(if (spent == 0L) "Your daily snapshot will appear here." else "Your spending recorded for ${today.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }}.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
 
 @Composable
-private fun QuoteBanner(text: String) {
-    Surface(color = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurface, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth().padding(top = 12.dp), shadowElevation = 3.dp) {
-        Text(text, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 25.sp, lineHeight = 30.sp, maxLines = 3, modifier = Modifier.padding(horizontal = 18.dp, vertical = 13.dp))
+private fun QuoteBanner(text: String, reduceMotion: Boolean) {
+    DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(24.dp), zIndex = 11f, tone = MaterialTheme.colorScheme.surface, elevation = 11.dp, reduceMotion = reduceMotion) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Text("A LITTLE NOTE", style = MaterialTheme.typography.labelMedium, letterSpacing = 1.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Text(text, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 21.sp, lineHeight = 25.sp, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(top = 3.dp))
+        }
     }
 }
 
 @Composable
 private fun CategoryCard(id: String, label: String, amount: Long, percent: Int, modifier: Modifier, onClick: () -> Unit) {
-    Surface(onClick = onClick, modifier = modifier.heightIn(min = 118.dp), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(18.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+    DewSurface(onClick = onClick, modifier = modifier.heightIn(min = 126.dp), shape = RoundedCornerShape(22.dp), zIndex = 30f, tone = MaterialTheme.colorScheme.surface, elevation = 9.dp) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 CategoryIcon(id, Modifier.size(20.dp)); Spacer(Modifier.weight(1f)); Icon(Icons.Outlined.ChevronRight, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(label, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
-            Text(moneyShort(amount), fontWeight = FontWeight.Medium, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
-            Text("$percent%", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(label, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
+            Text(moneyShort(amount), fontWeight = FontWeight.Medium, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
+            Text("$percent%", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -447,14 +449,14 @@ private fun TransactionRow(transaction: TransactionEntity, onClick: () -> Unit) 
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(transaction.rawText.ifBlank { "Transaction" }, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
-            Text("${KhataCategories.names[transaction.categoryId] ?: "Uncategorized"} · ${transaction.date}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${KhataCategories.names[transaction.categoryId] ?: "Uncategorized"} · ${transaction.date}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text((if (transaction.direction == "CREDIT") "+" else "−") + money(transaction.amountPaise), color = if (transaction.direction == "CREDIT") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
     }
 }
 
 @Composable
-private fun ReviewScreen(queue: List<TransactionEntity>, categories: List<Pair<String, String>>, onBack: () -> Unit, onCorrect: (TransactionEntity, String) -> Unit, onTransfer: (TransactionEntity) -> Unit, onIgnore: (TransactionEntity) -> Unit) {
+private fun ReviewScreen(queue: List<TransactionEntity>, categories: List<Pair<String, String>>, reduceMotion: Boolean, onBack: () -> Unit, onCorrect: (TransactionEntity, String) -> Unit, onTransfer: (TransactionEntity) -> Unit, onIgnore: (TransactionEntity) -> Unit) {
     Column(Modifier.fillMaxSize().padding(horizontal = 18.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) { IconButton(onClick = onBack) { Icon(Icons.Outlined.ArrowBack, "Back") }; Text("Review queue", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold) }
         if (queue.isEmpty()) {
@@ -463,7 +465,7 @@ private fun ReviewScreen(queue: List<TransactionEntity>, categories: List<Pair<S
             val txn = queue.first()
             Text("1 / ${queue.size}", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
             Spacer(Modifier.height(24.dp))
-            Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(22.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()) {
+            DewSurface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(26.dp), zIndex = 34f, tone = MaterialTheme.colorScheme.surface, elevation = 15.dp, reduceMotion = reduceMotion) {
                 Column(Modifier.padding(20.dp)) {
                     Text(txn.rawText, fontWeight = FontWeight.Medium, fontSize = 20.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text("${if (txn.direction == "CREDIT") "+" else "−"}${money(txn.amountPaise)}", fontSize = 32.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
@@ -515,7 +517,7 @@ private fun CalendarScreen(transactions: List<TransactionEntity>, onTransaction:
                 val ratio = value.toFloat() / maxSpend
                 val tint = if (value == 0L) MaterialTheme.colorScheme.surfaceVariant else if (ratio < .5f) MaterialTheme.colorScheme.secondary.copy(alpha = .30f + ratio * .3f) else MaterialTheme.colorScheme.primary.copy(alpha = .35f + ratio.coerceAtMost(1f) * .35f)
                 val date = month.atDay(day).toString()
-                Box(Modifier.aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(tint).then(if (date == selectedDay) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(8.dp)) else if (date == today.toString()) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)) else Modifier).clickable { selectedDay = date }, contentAlignment = Alignment.Center) { Text(day.toString(), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface) }
+                Box(Modifier.aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(tint).then(if (date == selectedDay) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(8.dp)) else if (date == today.toString()) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)) else Modifier).clickable { selectedDay = date }, contentAlignment = Alignment.Center) { Text(day.toString(), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface) }
             }
         }
         Spacer(Modifier.height(18.dp)); SectionTitle("${LocalDate.parse(selectedDay).format(DateTimeFormatter.ofPattern("d MMMM"))} · ${money(spendByDay[LocalDate.parse(selectedDay).dayOfMonth] ?: 0L)}")
@@ -583,33 +585,55 @@ private fun YearHeatmap(transactions: List<TransactionEntity>) {
     val year = LocalDate.now().year
     val byDate = transactions.filter { it.date.startsWith(year.toString()) && (it.type == "EXPENSE" || it.type == "REFUND") }.groupBy { it.date }.mapValues { netSpend(it.value) }
     val max = byDate.values.maxOrNull()?.coerceAtLeast(1) ?: 1
-    val start = LocalDate.of(year, 1, 1)
-    val leading = start.dayOfWeek.value % 7
-    val days = if (start.isLeapYear) 366 else 365
-    val dates: List<String?> = List(leading) { null } + (0 until days).map { start.plusDays(it.toLong()).toString() }
-    val padded = dates + List((7 - dates.size % 7) % 7) { null }
-    val weeks = padded.chunked(7)
-    Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            weeks.forEach { week ->
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    week.forEach { date ->
-                        if (date == null) Box(Modifier.size(10.dp)) else {
-                            val amount = byDate[date] ?: 0L
-                            val intensity = (amount.toFloat() / max).coerceIn(0f, 1f)
-                            val tint = if (amount == 0L) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary.copy(alpha = .22f + .72f * intensity)
-                            Box(Modifier.size(10.dp).clip(RoundedCornerShape(3.dp)).background(tint))
+    val today = LocalDate.now()
+    val weekdayLabels = listOf("S", "M", "T", "W", "T", "F", "S")
+    DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), shape = RoundedCornerShape(28.dp), zIndex = 36f, tone = MaterialTheme.colorScheme.surface, elevation = 12.dp) {
+        Column(Modifier.fillMaxWidth().padding(12.dp)) {
+            (1..12).map { YearMonth.of(year, it) }.chunked(2).forEach { pair ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+                    pair.forEach { month ->
+                        val offset = month.atDay(1).dayOfWeek.value % 7
+                        val dates = List(offset) { null } + (1..month.lengthOfMonth()).map { month.atDay(it) }
+                        val padded = dates + List((7 - dates.size % 7) % 7) { null }
+                        val weeks = padded.chunked(7)
+                        Column(Modifier.weight(1f).padding(horizontal = 4.dp, vertical = 6.dp)) {
+                            Text(month.format(DateTimeFormatter.ofPattern("MMM")), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                            Spacer(Modifier.height(4.dp))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                weekdayLabels.forEach { label -> Text(label, Modifier.weight(1f), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+                            }
+                            Spacer(Modifier.height(3.dp))
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                weeks.forEach { week ->
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        week.forEach { date ->
+                                            val amount = date?.let { byDate[it.toString()] ?: 0L } ?: 0L
+                                            val intensity = if (amount == 0L) 0f else (amount.toFloat() / max.toFloat()).coerceIn(0f, 1f)
+                                            val tint = when {
+                                                date == null -> Color.Transparent
+                                                date.isAfter(today) -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .20f)
+                                                amount == 0L -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .65f)
+                                                intensity < .25f -> MaterialTheme.colorScheme.primary.copy(alpha = .30f)
+                                                intensity < .50f -> MaterialTheme.colorScheme.primary.copy(alpha = .48f)
+                                                intensity < .75f -> MaterialTheme.colorScheme.primary.copy(alpha = .68f)
+                                                else -> MaterialTheme.colorScheme.primary.copy(alpha = .90f)
+                                            }
+                                            Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(3.dp)).background(tint))
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-        Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-            Text("Less", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.width(5.dp))
-            listOf(.18f, .4f, .68f, .94f).forEach { alpha -> Box(Modifier.padding(horizontal = 2.dp).size(10.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))) }
-            Spacer(Modifier.width(5.dp))
-            Text("More", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp, end = 4.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                Text("Less", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.width(5.dp))
+                listOf(.30f, .48f, .68f, .90f).forEach { alpha -> Box(Modifier.padding(horizontal = 2.dp).size(11.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))) }
+                Spacer(Modifier.width(5.dp))
+                Text("More", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
@@ -630,6 +654,7 @@ private fun CategoryDetailScreen(categoryId: String, transactions: List<Transact
 @Composable
 private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, transactions: List<TransactionEntity>, accounts: List<AccountEntity>, onClear: () -> Unit) {
     val context = LocalContext.current
+    val reduceMotion = shouldReduceMotion(settings.reduceMotion)
     var username by remember(settings.username) { mutableStateOf(settings.username) }
     var budget by remember(settings.monthlyBudgetPaise) { mutableStateOf(if (settings.monthlyBudgetPaise > 0) (settings.monthlyBudgetPaise / 100.0).toString() else "") }
     var clearConfirm by remember { mutableStateOf(false) }
@@ -650,32 +675,42 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Read in English letters", Modifier.weight(1f)); Switch(settings.romanScript, { viewModel.roman(it) }) }
         Spacer(Modifier.height(12.dp)); SectionTitle("Appearance")
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark", "WALLPAPER" to "Wallpaper").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
-        Text(if (settings.themeMode == "WALLPAPER") "Use Android wallpaper colors and follow your system light/dark mode." else "Solid surfaces · soft depth · clear contrast", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
+        Text("Warm paper · Ember accent · one consistent palette", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Reduce motion", Modifier.weight(1f)); listOf("FOLLOW_SYSTEM", "ON", "OFF").forEach { value -> FilterChip(selected = settings.reduceMotion == value, onClick = { viewModel.motion(value) }, label = { Text(when (value) { "FOLLOW_SYSTEM" -> "Auto"; else -> value.lowercase().replaceFirstChar { it.uppercase() } }) }) } }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Haptics", Modifier.weight(1f)); Switch(settings.hapticsEnabled, { viewModel.haptics(it) }) }
         Spacer(Modifier.height(10.dp)); SectionTitle("Smart nudges")
-        Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("Restock reminders"); Text("Learns your grocery, fuel and essentials rhythm locally. Allow notifications below for background alerts.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp) }; Switch(settings.nudgesEnabled, { viewModel.nudges(it) }) }
+        Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("Restock reminders"); Text("Learns your grocery, fuel and essentials rhythm locally. Allow notifications below for background alerts.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp) }; Switch(settings.nudgesEnabled, { viewModel.nudges(it) }) }
         Spacer(Modifier.height(12.dp)); SectionTitle("Budget")
         OutlinedTextField(budget, { budget = it.filter { c -> c.isDigit() || c == '.' } }, modifier = Modifier.fillMaxWidth(), label = { Text("Monthly limit") }, prefix = { Text("₹") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
         TextButton(onClick = { viewModel.budget(((budget.toDoubleOrNull() ?: 0.0) * 100).toLong()) }) { Text("Save budget") }
         Spacer(Modifier.height(12.dp)); SectionTitle("Notifications")
         Text("Khata can alert you when a recorded expense takes you over your monthly budget.", color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 20.sp)
-        Button(onClick = {
-            if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                notificationsEnabled = NotificationHelper.canNotify(context)
-                if (notificationsEnabled) NotificationHelper.showPermissionSuccess(context)
+        DewSurface(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(52.dp),
+            shape = RoundedCornerShape(26.dp), zIndex = 42f,
+            tone = if (notificationsEnabled) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primaryContainer,
+            elevation = 11.dp, reduceMotion = reduceMotion,
+            onClick = {
+                if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    notificationsEnabled = NotificationHelper.canNotify(context)
+                    if (notificationsEnabled) NotificationHelper.showPermissionSuccess(context)
+                }
             }
-        }, modifier = Modifier.padding(top = 8.dp)) {
-            Icon(if (notificationsEnabled) Icons.Outlined.NotificationsActive else Icons.Outlined.Notifications, null)
-            Spacer(Modifier.width(8.dp)); Text(if (notificationsEnabled) "Alerts enabled · send test" else "Enable budget alerts")
+        ) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 18.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                Icon(if (notificationsEnabled) Icons.Outlined.NotificationsActive else Icons.Outlined.Notifications, null, tint = if (notificationsEnabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(10.dp)); Text(if (notificationsEnabled) "Alerts enabled · send test" else "Enable budget alerts", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            }
         }
-        if (!notificationsEnabled) Text("You can turn alerts off any time in Android Settings.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        if (!notificationsEnabled) Text("You can turn alerts off any time in Android Settings.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         Spacer(Modifier.height(14.dp)); SectionTitle("Home screen")
-        OutlinedButton(onClick = { pinKhataWidget(context) }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) { Icon(Icons.Outlined.Widgets, null); Spacer(Modifier.width(8.dp)); Text("Add Khata spending widget") }
-        Text("Choose daily, 7-day, or monthly totals on the launcher widget. It refreshes after entries and hourly.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(52.dp), shape = RoundedCornerShape(26.dp), zIndex = 42f, tone = MaterialTheme.colorScheme.primaryContainer, elevation = 10.dp, reduceMotion = reduceMotion, onClick = { pinKhataWidget(context) }) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) { Icon(Icons.Outlined.Widgets, null, tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(9.dp)); Text("Add Khata spending widget", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold) }
+        }
+        Text("Choose a daily, weekly, monthly, or all-time view for each widget. Resize it to choose compact, standard, or large layouts. Updates after entries and hourly.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
         Spacer(Modifier.height(12.dp)); SectionTitle("Accounts")
         if (accounts.isEmpty()) Text("Loading accounts…", color = MaterialTheme.colorScheme.onSurfaceVariant)
         accounts.forEach { account ->
@@ -685,7 +720,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
                 Row(Modifier.padding(horizontal = 14.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondary.copy(alpha = .14f)), contentAlignment = Alignment.Center) { Icon(if (account.accountType == "BANK") Icons.Outlined.AccountBalance else Icons.Outlined.Wallet, null, tint = MaterialTheme.colorScheme.secondary) }
                     Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) { Text(account.name, fontWeight = FontWeight.Medium); Text("${account.institution} · ${account.accountType.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp) }
+                    Column(Modifier.weight(1f)) { Text(account.name, fontWeight = FontWeight.Medium); Text("${account.institution} · ${account.accountType.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp) }
                     Text(money(balance), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
                 }
             }
@@ -702,7 +737,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }, modifier = Modifier.fillMaxWidth()) { Text("Export CSV · ${transactions.size} transactions") }
         OutlinedButton(onClick = { toastMessage = "CSV import is planned; your local data has not changed." }, modifier = Modifier.fillMaxWidth()) { Text("Import CSV") }
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
-        Text("Khata 1.4.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Khata 1.5.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Your transaction data stays on this device.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))
@@ -712,7 +747,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun QuickAddDialog(accounts: List<AccountEntity>, onDismiss: () -> Unit, onSave: (String, Long, String, LocalDate, String, String?, String) -> Unit) {
+private fun QuickAddDialog(accounts: List<AccountEntity>, reduceMotion: Boolean, onDismiss: () -> Unit, onSave: (String, Long, String, LocalDate, String, String?, String) -> Unit) {
     var merchant by rememberSaveable { mutableStateOf("") }
     var amount by rememberSaveable { mutableStateOf("") }
     var direction by rememberSaveable { mutableStateOf("DEBIT") }
@@ -763,9 +798,20 @@ private fun QuickAddDialog(accounts: List<AccountEntity>, onDismiss: () -> Unit,
             }
         },
         confirmButton = {
-            Button(enabled = merchant.isNotBlank() && (amount.toDoubleOrNull() ?: 0.0) > 0, onClick = {
-                onSave(merchant.trim(), ((amount.toDoubleOrNull() ?: 0.0) * 100).toLong(), direction, date, note.trim(), category.takeUnless { it == "auto" }, accountId)
-            }) { Text("Save") }
+            val canSave = merchant.isNotBlank() && (amount.toDoubleOrNull() ?: 0.0) > 0
+            DewSurface(
+                modifier = Modifier.widthIn(min = 88.dp).height(42.dp),
+                shape = RoundedCornerShape(21.dp), zIndex = 110f,
+                tone = if (canSave) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                elevation = if (canSave) 8.dp else 0.dp, reduceMotion = reduceMotion,
+                onClick = if (canSave) {
+                    { onSave(merchant.trim(), ((amount.toDoubleOrNull() ?: 0.0) * 100).toLong(), direction, date, note.trim(), category.takeUnless { it == "auto" }, accountId) }
+                } else null
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Save", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = if (canSave) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
@@ -820,8 +866,8 @@ private fun TransactionDetailDialog(transaction: TransactionEntity, accountName:
             if (showCategories) Column(Modifier.heightIn(max = 190.dp).verticalScroll(rememberScrollState())) {
                 KhataCategories.names.filterKeys { it !in listOf("uncategorized", "income", "investments", "fees") }.forEach { (id, name) -> TextButton(onClick = { onCategory(id) }) { Text(name) } }
             }
-            Text("Account · $accountName", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
-            Text("Original · ${transaction.rawText}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+            Text("Account · $accountName", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+            Text("Original · ${transaction.rawText}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         }
     }, confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } }, dismissButton = { TextButton(onClick = onDelete) { Text("Delete", color = MaterialTheme.colorScheme.error) } })
 }
@@ -834,7 +880,7 @@ private fun SelectableRow(label: String, selected: Boolean, onClick: () -> Unit)
 }
 
 @Composable
-private fun SectionTitle(title: String) { Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface) }
+private fun SectionTitle(title: String) { Text(title, fontSize = 17.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface) }
 
 @Composable
 private fun CategoryIcon(id: String, modifier: Modifier = Modifier, tint: Color = MaterialTheme.colorScheme.primary) {

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_card" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@drawable/widget_card_bg" android:padding="20dp">
+    <TextView android:id="@+id/widget_period_label" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TODAY" android:textColor="#FF7A5745" android:textSize="12sp" android:letterSpacing="0.14" android:textStyle="bold"/>
+    <TextView android:id="@+id/widget_total" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="₹0" android:textColor="#FF302820" android:textSize="36sp" android:textStyle="bold"/>
+    <TextView android:id="@+id/widget_caption" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="net spent today · tap to open" android:textColor="#FF66594D" android:textSize="14sp"/>
+    <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="horizontal">
+        <TextView android:id="@+id/widget_period_day" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:gravity="center" android:text="Day" android:textColor="#FF7A5745" android:textSize="13sp" android:background="@drawable/widget_period_idle"/>
+        <TextView android:id="@+id/widget_period_week" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:gravity="center" android:text="7 days" android:textColor="#FF7A5745" android:textSize="13sp" android:background="@drawable/widget_period_idle"/>
+        <TextView android:id="@+id/widget_period_month" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:gravity="center" android:text="Month" android:textColor="#FF7A5745" android:textSize="13sp" android:background="@drawable/widget_period_idle"/>
+        <TextView android:id="@+id/widget_period_all" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:gravity="center" android:text="All time" android:textColor="#FF7A5745" android:textSize="13sp" android:background="@drawable/widget_period_idle"/>
+    </LinearLayout>
+</LinearLayout>

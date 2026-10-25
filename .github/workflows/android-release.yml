@@ -1,4 +1,4 @@
-name: Signed Android Release
+name: Android Release
 on:
   push:
     tags:
@@ -6,8 +6,8 @@ on:
 permissions:
   contents: write
 jobs:
-  signed-release:
-    name: Test, sign and publish APK
+  release:
+    name: Test, build, and publish Khata APK
     runs-on: ubuntu-latest
     env:
       KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
@@ -15,15 +15,6 @@ jobs:
       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
-      - name: Check signing secrets are configured
-        shell: bash
-        run: |
-          for name in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
-            if [[ -z "${!name}" ]]; then
-              echo "Missing required repository Actions secret: ${name}"
-              exit 1
-            fi
-          done
       - name: Check out tagged source
         uses: actions/checkout@v4
       - name: Set up Java 17
@@ -33,7 +24,18 @@ jobs:
           java-version: '17'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+      - name: Detect owner signing configuration
+        id: signing
+        shell: bash
+        run: |
+          if [[ -n "$KEYSTORE_B64" && -n "$KEYSTORE_PASSWORD" && -n "$KEY_ALIAS" && -n "$KEY_PASSWORD" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Owner signing secrets are not all configured; publishing a debug-signed test prerelease."
+          fi
       - name: Decode owner keystore outside the repository
+        if: steps.signing.outputs.enabled == 'true'
         shell: bash
         run: |
           key_path="$RUNNER_TEMP/khata-release.keystore"
@@ -42,18 +44,66 @@ jobs:
           chmod 600 "$key_path"
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
-      - name: Assemble signed release APK
+      - name: Assemble owner-signed release APK
+        if: steps.signing.outputs.enabled == 'true'
         run: ./gradlew assembleRelease --stacktrace
-      - name: Verify APK signature
+      - name: Verify owner-signed APK
+        if: steps.signing.outputs.enabled == 'true'
         shell: bash
         run: |
           signer="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$signer"
           "$signer" verify --verbose app/build/outputs/apk/release/app-release.apk
-      - name: Publish signed APK on the tag release
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/Khata-$GITHUB_REF_NAME.apk"
+      - name: Assemble debug test APK
+        if: steps.signing.outputs.enabled != 'true'
+        run: ./gradlew assembleDebug --stacktrace
+      - name: Prepare debug test prerelease APK
+        if: steps.signing.outputs.enabled != 'true'
+        run: cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/Khata-$GITHUB_REF_NAME-debug-test.apk"
+      - name: Upload APK build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Khata-${{ github.ref_name }}
+          path: ${{ runner.temp }}/Khata-${{ github.ref_name }}*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Create release notes
+        shell: bash
+        run: |
+          {
+            echo "## Khata $GITHUB_REF_NAME"
+            echo
+            if [[ "${{ steps.signing.outputs.enabled }}" == "true" ]]; then
+              echo "Owner-key-signed Android APK."
+            else
+              echo "Debug-signed APK for device testing; this is not a Play Store production-signed build."
+            fi
+            echo
+            echo "### Highlights"
+            echo "- Warm paper and Ember palette with frosted Dew surfaces and raised, responsive navigation."
+            echo "- A focused Home snapshot, larger type, quote rotation, and redesigned daily/weekly/monthly/all-time widgets."
+            echo "- Optional notification permission, tactile controls, category analysis, and local-first records."
+            echo "- See the repository README for the concise feature list."
+          } > "$RUNNER_TEMP/release-notes.md"
+      - name: Publish or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          gh release create "$GITHUB_REF_NAME" app/build/outputs/apk/release/app-release.apk \
-            --title "Khata $GITHUB_REF_NAME" \
-            --generate-notes
+          if [[ "${{ steps.signing.outputs.enabled }}" == "true" ]]; then
+            asset="$RUNNER_TEMP/Khata-$GITHUB_REF_NAME.apk"
+            prerelease_flag=()
+          else
+            asset="$RUNNER_TEMP/Khata-$GITHUB_REF_NAME-debug-test.apk"
+            prerelease_flag=(--prerelease)
+          fi
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$asset" --clobber
+            gh release edit "$GITHUB_REF_NAME" --title "Khata $GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/release-notes.md"
+          else
+            gh release create "$GITHUB_REF_NAME" "$asset" \
+              --title "Khata $GITHUB_REF_NAME" \
+              --notes-file "$RUNNER_TEMP/release-notes.md" \
+              "${prerelease_flag[@]}"
+          fi

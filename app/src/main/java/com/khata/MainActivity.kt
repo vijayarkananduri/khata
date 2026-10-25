@@ -16,6 +16,7 @@ import com.khata.data.prefs.KhataPreferences
 import com.khata.data.prefs.UserSettings
 import com.khata.data.repo.KhataRepository
 import com.khata.notifications.NotificationHelper
+import com.khata.widget.KhataHomeWidgetProvider
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -60,6 +61,8 @@ class KhataViewModel @Inject constructor(
 
     init { viewModelScope.launch { repository.initialize() } }
 
+    private fun refreshWidget() = KhataHomeWidgetProvider.refreshAll(appContext)
+
     fun finishOnboarding(username: String, language: String, roman: Boolean, budgetPaise: Long) = viewModelScope.launch {
         preferences.completeOnboarding(username, language, roman, budgetPaise)
     }
@@ -77,12 +80,13 @@ class KhataViewModel @Inject constructor(
         if (createdType == "EXPENSE" && direction == "DEBIT" && date.toString().startsWith(monthPrefix) && budget > 0L && before <= budget && before + amountPaise > budget) {
             NotificationHelper.showBudgetExceeded(appContext, before + amountPaise, budget)
         }
+        if (createdType != null) refreshWidget()
     }
-    fun correct(transaction: TransactionEntity, category: String) = viewModelScope.launch { repository.correct(transaction, category) }
-    fun markTransfer(transaction: TransactionEntity) = viewModelScope.launch { repository.correct(transaction, "transfers", true) }
+    fun correct(transaction: TransactionEntity, category: String) = viewModelScope.launch { repository.correct(transaction, category); refreshWidget() }
+    fun markTransfer(transaction: TransactionEntity) = viewModelScope.launch { repository.correct(transaction, "transfers", true); refreshWidget() }
     fun ignore(transaction: TransactionEntity) = viewModelScope.launch { repository.ignore(transaction.id) }
-    fun delete(transaction: TransactionEntity) = viewModelScope.launch { repository.delete(transaction.id) }
-    fun clearAll() = viewModelScope.launch { repository.clearAll() }
+    fun delete(transaction: TransactionEntity) = viewModelScope.launch { repository.delete(transaction.id); refreshWidget() }
+    fun clearAll() = viewModelScope.launch { repository.clearAll(); refreshWidget() }
     fun username(value: String) = viewModelScope.launch { preferences.setUsername(value) }
     fun language(value: String) = viewModelScope.launch { preferences.setLanguage(value) }
     fun roman(value: Boolean) = viewModelScope.launch { preferences.setRoman(value) }

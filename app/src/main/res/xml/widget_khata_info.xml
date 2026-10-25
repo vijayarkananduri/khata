@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="220dp" android:minHeight="156dp"
-    android:minResizeWidth="180dp" android:minResizeHeight="140dp"
-    android:initialLayout="@layout/widget_khata"
+    android:minWidth="180dp" android:minHeight="110dp"
+    android:minResizeWidth="140dp" android:minResizeHeight="90dp"
+    android:initialLayout="@layout/widget_khata_compact"
     android:previewLayout="@layout/widget_khata"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="3600000"

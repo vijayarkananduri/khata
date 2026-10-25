@@ -7,13 +7,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.RemoteViews
 import androidx.room.Room
 import com.khata.R
 import com.khata.data.db.KhataDatabase
 import com.khata.data.db.MIGRATION_1_2
-import com.khata.domain.stats.SpendPeriod
-import com.khata.domain.stats.SpendPeriodRanges
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,97 +22,208 @@ import java.text.NumberFormat
 import java.time.LocalDate
 import java.util.Locale
 
+internal enum class WidgetPeriod(val key: String, val label: String, val caption: String) {
+    DAY("DAY", "TODAY", "today"),
+    WEEK("WEEK", "LAST 7 DAYS", "last 7 days"),
+    MONTH("MONTH", "THIS MONTH", "this month"),
+    ALL("ALL", "ALL TIME", "all time");
+
+    fun dateRange(today: LocalDate): Pair<LocalDate, LocalDate> = when (this) {
+        DAY -> today to today
+        WEEK -> today.minusDays(6) to today
+        MONTH -> today.withDayOfMonth(1) to today
+        ALL -> LocalDate.of(1, 1, 1) to today
+    }
+
+    companion object {
+        fun fromKey(key: String?): WidgetPeriod = entries.firstOrNull { it.key == key } ?: DAY
+        fun fromAction(action: String?): WidgetPeriod? = entries.firstOrNull { period ->
+            action == when (period) {
+                DAY -> KhataHomeWidgetProvider.ACTION_DAY
+                WEEK -> KhataHomeWidgetProvider.ACTION_WEEK
+                MONTH -> KhataHomeWidgetProvider.ACTION_MONTH
+                ALL -> KhataHomeWidgetProvider.ACTION_ALL
+            }
+        }
+    }
+}
+
+internal enum class WidgetLayoutVariant { COMPACT, STANDARD, LARGE }
+
+internal fun widgetLayoutVariantFor(widthDp: Int, heightDp: Int): WidgetLayoutVariant = when {
+    widthDp in 1..239 || heightDp in 1..139 -> WidgetLayoutVariant.COMPACT
+    widthDp >= 340 && heightDp >= 220 -> WidgetLayoutVariant.LARGE
+    else -> WidgetLayoutVariant.STANDARD
+}
+
 class KhataHomeWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         refresh(context, manager, ids, goAsync())
     }
 
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        manager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: android.os.Bundle
+    ) {
+        refresh(context, manager, intArrayOf(appWidgetId), goAsync())
+    }
+
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        val preferences = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        preferences.edit().also { editor ->
+            appWidgetIds.forEach { editor.remove(periodPreferenceKey(it)) }
+        }.apply()
+        super.onDeleted(context, appWidgetIds)
+    }
+
     override fun onReceive(context: Context, intent: Intent?) {
-        val action = intent?.action
-        val period = when (action) {
-            ACTION_DAY -> "DAY"
-            ACTION_WEEK -> "WEEK"
-            ACTION_MONTH -> "MONTH"
-            else -> null
-        }
-        if (period == null) {
+        val selectedPeriod = WidgetPeriod.fromAction(intent?.action)
+        if (selectedPeriod == null) {
             super.onReceive(context, intent)
             return
         }
+
+        val widgetId = intent?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+            ?: AppWidgetManager.INVALID_APPWIDGET_ID
+        if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            Log.w(TAG, "Ignoring widget period action without a valid app widget ID")
+            return
+        }
+
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit().putString(KEY_PERIOD, period).apply()
+            .edit().putString(periodPreferenceKey(widgetId), selectedPeriod.key).apply()
         val manager = AppWidgetManager.getInstance(context)
-        val ids = manager.getAppWidgetIds(ComponentName(context, KhataHomeWidgetProvider::class.java))
-        if (ids.isNotEmpty()) refresh(context, manager, ids, goAsync())
+        refresh(context, manager, intArrayOf(widgetId), goAsync())
     }
 
     companion object {
+        private const val TAG = "KhataHomeWidget"
         private const val PREFS = "khata_widget"
-        private const val KEY_PERIOD = "period"
-        private const val ACTION_DAY = "com.khata.widget.PERIOD_DAY"
-        private const val ACTION_WEEK = "com.khata.widget.PERIOD_WEEK"
-        private const val ACTION_MONTH = "com.khata.widget.PERIOD_MONTH"
+        internal const val ACTION_DAY = "com.khata.widget.PERIOD_DAY"
+        internal const val ACTION_WEEK = "com.khata.widget.PERIOD_WEEK"
+        internal const val ACTION_MONTH = "com.khata.widget.PERIOD_MONTH"
+        internal const val ACTION_ALL = "com.khata.widget.PERIOD_ALL"
 
+        private fun periodPreferenceKey(widgetId: Int) = "period_$widgetId"
+
+        /** Called by app transaction mutations; the scheduled widget update remains a backup. */
         fun refreshAll(context: Context) {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, KhataHomeWidgetProvider::class.java))
             if (ids.isNotEmpty()) refresh(context, manager, ids, null)
         }
 
-        private fun refresh(context: Context, manager: AppWidgetManager, ids: IntArray, pending: android.content.BroadcastReceiver.PendingResult?) {
+        private fun refresh(
+            context: Context,
+            manager: AppWidgetManager,
+            ids: IntArray,
+            pending: android.content.BroadcastReceiver.PendingResult?
+        ) {
+            if (ids.isEmpty()) {
+                pending?.finish()
+                return
+            }
             val appContext = context.applicationContext
             CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-                var db: KhataDatabase? = null
+                var database: KhataDatabase? = null
                 try {
-                    val database = Room.databaseBuilder(appContext, KhataDatabase::class.java, "khata.db")
+                    val db = Room.databaseBuilder(appContext, KhataDatabase::class.java, "khata.db")
                         .addMigrations(MIGRATION_1_2).build()
-                    db = database
+                    database = db
                     val today = LocalDate.now()
-                    val key = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                        .getString(KEY_PERIOD, "DAY") ?: "DAY"
-                    val period = SpendPeriod.fromKey(key)
-                    val range = SpendPeriodRanges.current(period, today)
-                    val spent = database.dao().expenseTotalBetween(range.start.toString(), range.endInclusive.toString())
-                    withContext(Dispatchers.Main) {
-                        val views = RemoteViews(appContext.packageName, R.layout.widget_khata)
-                        val amount = NumberFormat.getIntegerInstance(Locale("en", "IN")).format(spent / 100)
-                        val label = when (period) { SpendPeriod.WEEK -> "LAST 7 DAYS"; SpendPeriod.MONTH -> "THIS MONTH"; else -> "TODAY" }
-                        val lowerLabel = when (period) { SpendPeriod.WEEK -> "last 7 days"; SpendPeriod.MONTH -> "this month"; else -> "today" }
-                        views.setTextViewText(R.id.widget_period_label, label)
-                        views.setTextViewText(R.id.widget_total, "₹$amount")
-                        views.setTextViewText(R.id.widget_caption, if (spent == 0L) "Nothing spent $lowerLabel" else "spent $lowerLabel · tap to open")
-                        val chosenColor = android.graphics.Color.WHITE
-                        val idleColor = android.graphics.Color.rgb(190, 199, 196)
-                        views.setTextColor(R.id.widget_period_day, if (period == SpendPeriod.DAY) chosenColor else idleColor)
-                        views.setTextColor(R.id.widget_period_week, if (period == SpendPeriod.WEEK) chosenColor else idleColor)
-                        views.setTextColor(R.id.widget_period_month, if (period == SpendPeriod.MONTH) chosenColor else idleColor)
-                        views.setInt(R.id.widget_period_day, "setBackgroundResource", if (period == SpendPeriod.DAY) R.drawable.widget_period_active else R.drawable.widget_period_idle)
-                        views.setInt(R.id.widget_period_week, "setBackgroundResource", if (period == SpendPeriod.WEEK) R.drawable.widget_period_active else R.drawable.widget_period_idle)
-                        views.setInt(R.id.widget_period_month, "setBackgroundResource", if (period == SpendPeriod.MONTH) R.drawable.widget_period_active else R.drawable.widget_period_idle)
-                        bindPeriodButton(appContext, views, R.id.widget_period_day, ACTION_DAY, 11)
-                        bindPeriodButton(appContext, views, R.id.widget_period_week, ACTION_WEEK, 12)
-                        bindPeriodButton(appContext, views, R.id.widget_period_month, ACTION_MONTH, 13)
-                        appContext.packageManager.getLaunchIntentForPackage(appContext.packageName)?.let { open ->
-                            val click = PendingIntent.getActivity(appContext, 0, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                            views.setOnClickPendingIntent(R.id.widget_card, click)
-                        }
-                        manager.updateAppWidget(ids, views)
+                    val preferences = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    val updates = ids.map { widgetId ->
+                        val period = WidgetPeriod.fromKey(preferences.getString(periodPreferenceKey(widgetId), null))
+                        val (start, endInclusive) = period.dateRange(today)
+                        val netSpent = db.dao().expenseTotalBetween(start.toString(), endInclusive.toString()).coerceAtLeast(0L)
+                        val options = manager.getAppWidgetOptions(widgetId)
+                        val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+                        val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+                        val variant = widgetLayoutVariantFor(width, height)
+                        widgetId to render(appContext, widgetId, period, netSpent, variant)
                     }
-                } catch (_: Exception) {
-                    // Keep the prior widget content if local storage is temporarily unavailable.
+                    withContext(Dispatchers.Main) {
+                        updates.forEach { (widgetId, views) -> manager.updateAppWidget(widgetId, views) }
+                    }
+                } catch (exception: Exception) {
+                    Log.e(TAG, "Failed to refresh home-screen widget(s) ${ids.joinToString()}", exception)
                 } finally {
-                    db?.close()
+                    database?.close()
                     pending?.finish()
                 }
             }
         }
 
-        private fun bindPeriodButton(context: Context, views: RemoteViews, viewId: Int, action: String, requestCode: Int) {
+        private fun render(
+            context: Context,
+            widgetId: Int,
+            period: WidgetPeriod,
+            spent: Long,
+            variant: WidgetLayoutVariant
+        ): RemoteViews {
+            val layoutId = when (variant) {
+                WidgetLayoutVariant.COMPACT -> R.layout.widget_khata_compact
+                WidgetLayoutVariant.STANDARD -> R.layout.widget_khata
+                WidgetLayoutVariant.LARGE -> R.layout.widget_khata_large
+            }
+            val views = RemoteViews(context.packageName, layoutId)
+            val amount = NumberFormat.getIntegerInstance(Locale("en", "IN")).format(spent / 100)
+            views.setTextViewText(R.id.widget_period_label, period.label)
+            views.setTextViewText(R.id.widget_total, "₹$amount")
+            views.setTextViewText(
+                R.id.widget_caption,
+                if (spent == 0L) "Nothing spent ${period.caption}" else "net spent ${period.caption} · tap to open"
+            )
+
+            val activeText = android.graphics.Color.rgb(255, 247, 233)
+            val idleText = android.graphics.Color.rgb(131, 112, 97)
+            val choices = listOf(
+                Triple(WidgetPeriod.DAY, R.id.widget_period_day, ACTION_DAY),
+                Triple(WidgetPeriod.WEEK, R.id.widget_period_week, ACTION_WEEK),
+                Triple(WidgetPeriod.MONTH, R.id.widget_period_month, ACTION_MONTH),
+                Triple(WidgetPeriod.ALL, R.id.widget_period_all, ACTION_ALL)
+            )
+            choices.forEachIndexed { index, (choice, viewId, action) ->
+                val isActive = choice == period
+                views.setTextColor(viewId, if (isActive) activeText else idleText)
+                views.setInt(viewId, "setBackgroundResource", if (isActive) R.drawable.widget_period_active else R.drawable.widget_period_idle)
+                bindPeriodButton(context, views, widgetId, viewId, action, choice, index)
+            }
+
+            context.packageManager.getLaunchIntentForPackage(context.packageName)?.let { launchIntent ->
+                val click = PendingIntent.getActivity(
+                    context,
+                    widgetId,
+                    launchIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.widget_card, click)
+            }
+            return views
+        }
+
+        private fun bindPeriodButton(
+            context: Context,
+            views: RemoteViews,
+            widgetId: Int,
+            viewId: Int,
+            action: String,
+            period: WidgetPeriod,
+            index: Int
+        ) {
             val intent = Intent(context, KhataHomeWidgetProvider::class.java).apply {
                 this.action = action
-                data = Uri.parse("khata-widget://$requestCode")
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                data = Uri.parse("khata-widget://$widgetId/${period.key.lowercase(Locale.ROOT)}")
             }
-            val click = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val click = PendingIntent.getBroadcast(
+                context,
+                widgetId * 10 + index,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
             views.setOnClickPendingIntent(viewId, click)
         }
     }
