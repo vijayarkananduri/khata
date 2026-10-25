@@ -8,26 +8,22 @@ A private, offline money tracker for Android.
 No bank linking. No sign-up. No cloud. No judgment (mostly).
 
 ![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
-![Offline](https://img.shields.io/badge/works-100%25%20offline-blue)
-![Bank linking](https://img.shields.io/badge/bank%20linking-none-red)
+![Offline](https://img.shields.io/badge/works-100%25%20offline-E3A21A)
+![Bank linking](https://img.shields.io/badge/bank%20linking-none-B8432A)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[Download the latest APK](https://github.com/vijayarkananduri/khata/releases/latest)
+[Visit the website](https://vijayarkananduri.github.io/khata/) | [Download the latest APK](https://github.com/vijayarkananduri/khata/releases/latest)
+
+<br>
+
+<img src="home.jpeg" width="200" alt="Home screen" />
+<img src="calender.jpeg" width="200" alt="Calendar and heatmap" />
+<img src="widjet.jpeg" width="200" alt="Home-screen widgets" />
+<img src="settings.jpeg" width="200" alt="Settings" />
 
 </div>
 
 ---
-
-<!-- Add 3 or 4 screenshots here. Example:
-<p align="center">
-  <img width="720" height="1570" alt="WhatsApp Image 2026-10-25 at 10 17 08 AM (1)" src="https://github.com/user-attachments/assets/5f5d6c79-1df7-472a-8f41-a915684aed2b" />
-  <img width="720" height="1572" alt="WhatsApp Image 2026-10-25 at 10 17 08 AM" src="https://github.com/user-attachments/assets/a6ce9fe4-329c-4d61-aa15-127eba841312" />
-
-<img src="docs/screenshots/home.png" width="220" />
-  <img src="docs/screenshots/heatmap.png" width="220" />
-  <img src="docs/screenshots/widgets.png" width="220" />
-</p>
--->
 
 ## The pitch
 
@@ -50,34 +46,19 @@ It tracks. That's the whole job. It does the job quietly.
 
 ## What it does
 
-### Tracks, privately
-Log expenses, income, transfers and old transactions in a few taps. Everything stays on your device, and you can export it all as CSV whenever you like.
+**Tracks, privately.** Log expenses, income, transfers and old transactions in a few taps. Everything stays on your device, and you can export it all as CSV.
 
-### Shows your year like a commit graph
-A GitHub-style heatmap of your spending. Dark squares are the days your wallet had opinions. Your habits show up without you reading a single chart.
+**Shows your year like a commit graph.** A GitHub-style heatmap of your spending. Dark squares are the days your wallet had opinions.
 
-### Nudges you before you run out
-Khata watches how often you buy the same thing and works out how long it lasts.
+**Nudges you before you run out.** Once Khata has seen you buy the same item more than twice, it works out how often you buy it and reminds you when the next purchase is due. A litre of milk that lasts two days gets a reminder on day two. The maths happens on your phone, and you can turn nudges off in Settings.
 
-1. You log something you buy regularly: milk, groceries, petrol.
-2. After it has seen the same item more than twice, Khata works out how often you buy it.
-3. When the next purchase is due, it taps you on the shoulder.
+**Lives on your home screen.** Widgets for daily, weekly, monthly or all-time totals, and for monthly budget progress.
 
-> You buy a litre of milk. Two days later, you buy a litre of milk. Two days after that, you buy a litre of milk. Khata gets it: a litre lasts you two days. On day two, it says, *"You may be running out of milk."*
+**Has a personality.** Short quotes inspired by movies and memes, because money tracking does not need to feel like a tax audit.
 
-Same trick for groceries, petrol and other essentials. The maths happens on your phone, using only your own entries. Don't want the reminders? Turn nudges off in Settings.
+**Speaks your language.** Hindi, Telugu, Tamil, Malayalam and Kannada, in the original script or in English letters.
 
-### Lives on your home screen
-Widgets for daily, weekly, monthly or all-time totals, and for monthly budget progress, so you can check your spending without opening the app and without pretending you didn't.
-
-### Has a personality
-Short quotes inspired by movies and memes show up in the app, because money tracking does not need to feel like a tax audit.
-
-### Speaks your language
-Hindi, Telugu, Tamil, Malayalam and Kannada, in the original script or in English letters.
-
-### Matches your phone
-Light, Dark, System, or colours pulled from your wallpaper.
+**Matches your phone.** Light, Dark, System, or colours pulled from your wallpaper.
 
 ## Things Khata will never do
 
@@ -108,7 +89,7 @@ Kotlin, Jetpack Compose and Room.
 
 ## Contributing
 
-Found a bug, or have an idea that fits the "private, simple, offline" rule? Open an issue. Ideas that need a server will be politely declined.
+Found a bug, or have an idea that fits the "private, simple, offline" rule? [Open an issue](https://github.com/vijayarkananduri/khata/issues). Ideas that need a server will be politely declined.
 
 ## License
 
