@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Khata — Everyday money, in balance</title>
+  <desc id="desc">Private, offline-first money tracking for Android. No bank linking. No account.</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FAF7F0"/><stop offset="1" stop-color="#F1E9DC"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0.9" y2="1"><stop stop-color="#FFFDF8"/><stop offset="1" stop-color="#F7F0E7"/></linearGradient>
+    <linearGradient id="ember" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#C95736"/><stop offset="1" stop-color="#9E3D27"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#C95736" stop-opacity=".15"/><stop offset="1" stop-color="#C95736" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#4D3528" flood-opacity=".16"/></filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#paper)"/>
+  <circle cx="1010" cy="88" r="340" fill="url(#glow)"/>
+  <path d="M0 0h14v630H0z" fill="url(#ember)"/>
+
+  <g font-family="Arial, Helvetica, sans-serif" fill="#292521">
+    <g transform="translate(86 82)">
+      <rect width="42" height="42" rx="13" fill="#9E3D27"/>
+      <path d="M12 10h13.5a4.5 4.5 0 0 1 4.5 4.5V32H16a4 4 0 0 1-4-4V10Zm0 4h13M17 20h8m-8 5h7" fill="none" stroke="#FFF8F3" stroke-width="2" stroke-linecap="round"/>
+      <text x="58" y="29" font-size="28" font-weight="700" letter-spacing="-1">Khata</text>
+    </g>
+    <text x="88" y="184" font-size="15" font-weight="700" letter-spacing="3" fill="#9E3D27">YOUR EVERYDAY LEDGER</text>
+    <text x="84" y="280" font-size="68" font-weight="700" letter-spacing="-3">Everyday money,</text>
+    <text x="84" y="355" font-size="68" font-weight="700" letter-spacing="-3">in balance.</text>
+    <text x="88" y="411" font-size="24" fill="#625A52">Private, offline-first tracking for Android.</text>
+    <text x="88" y="448" font-size="24" fill="#625A52">No bank linking. No account.</text>
+
+    <g transform="translate(88 510)">
+      <rect width="150" height="38" rx="8" fill="#FFFDF8" stroke="#D9CFC2"/>
+      <path d="M14 15 11 10m17 5 3-5M13 17a9 9 0 0 1 16 0H13Zm1 3h14v6H14z" fill="#486B57"/>
+      <text x="39" y="25" font-size="13" font-weight="700" letter-spacing="1" fill="#625A52">ANDROID</text>
+      <rect x="164" width="156" height="38" rx="8" fill="#FFFDF8" stroke="#D9CFC2"/>
+      <text x="182" y="24" font-size="13" font-weight="700" letter-spacing="1" fill="#625A52">OPEN SOURCE · MIT</text>
+      <rect x="334" width="146" height="38" rx="8" fill="#FFFDF8" stroke="#D9CFC2"/>
+      <text x="353" y="24" font-size="13" font-weight="700" letter-spacing="1" fill="#625A52">WORKS OFFLINE</text>
+    </g>
+  </g>
+
+  <g filter="url(#shadow)" transform="translate(790 104)">
+    <rect width="310" height="414" rx="30" fill="url(#card)" stroke="#E8E0D5" stroke-width="2"/>
+    <path d="M37 1h236" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+    <text x="34" y="58" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="#625A52">TODAY</text>
+    <text x="31" y="122" font-family="Arial, sans-serif" font-size="48" font-weight="700" letter-spacing="-2" fill="#292521">₹1,250</text>
+    <text x="34" y="154" font-family="Arial, sans-serif" font-size="14" fill="#625A52">A clear view of the day</text>
+    <path d="M32 184h246" stroke="#E8E0D5"/>
+    <circle cx="45" cy="222" r="13" fill="#F2E6C9"/><path d="M40 222h10m-5-5v10" stroke="#9A6818" stroke-width="2" stroke-linecap="round"/>
+    <text x="70" y="218" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#292521">Groceries</text>
+    <text x="70" y="239" font-family="Arial, sans-serif" font-size="12" fill="#625A52">Food &amp; essentials</text>
+    <text x="278" y="226" text-anchor="end" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#292521">₹620</text>
+    <path d="M32 263h246" stroke="#E8E0D5"/>
+    <circle cx="45" cy="301" r="13" fill="#E3ECE3"/><path d="M38 303h14m-11-5 2-3h6l2 3" fill="none" stroke="#486B57" stroke-width="1.7" stroke-linejoin="round"/>
+    <text x="70" y="297" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#292521">Transport</text>
+    <text x="70" y="318" font-family="Arial, sans-serif" font-size="12" fill="#625A52">Getting around</text>
+    <text x="278" y="305" text-anchor="end" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#292521">₹280</text>
+    <path d="M32 342h246" stroke="#E8E0D5"/>
+    <text x="34" y="378" font-family="Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1" fill="#9E3D27">YOUR MONEY. YOUR PHONE.</text>
+  </g>
+</svg>

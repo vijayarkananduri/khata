@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://vijayarkananduri.github.io/khata/sitemap.xml
