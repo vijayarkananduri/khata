@@ -5,10 +5,45 @@ import com.khata.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
 data class InAppQuote(val text: String)
+
+internal data class AmbientQuoteCandidate(
+    val id: String,
+    val tone: String,
+    val lane: String,
+    val native: String,
+    val roman: String
+)
+
+internal object AmbientQuotePicker {
+    fun currentLane(now: LocalDateTime): String = when {
+        now.dayOfMonth in 1..3 -> "payday"
+        now.dayOfMonth >= 28 -> "month_end"
+        now.hour in 5..11 -> "morning"
+        now.hour in 12..16 -> "afternoon"
+        now.hour in 17..20 -> "evening"
+        else -> "night"
+    }
+
+    fun choose(
+        all: List<AmbientQuoteCandidate>,
+        lane: String,
+        lastTone: String?,
+        lastId: String?
+    ): AmbientQuoteCandidate? {
+        val laneQuotes = all.filter { it.lane == lane }.ifEmpty { all }
+        val candidates = laneQuotes
+            .filter { it.id != lastId }
+            .filter { lastTone == null || it.tone != lastTone }
+            .ifEmpty { laneQuotes.filter { it.id != lastId } }
+            .ifEmpty { laneQuotes }
+        return candidates.shuffled().firstOrNull()
+    }
+}
 
 object QuoteRotation {
     // CHANGED: 12h → 24h (one quote per trigger per day)
@@ -83,6 +118,44 @@ class QuoteRepository @Inject constructor(private val context: Context) {
             .apply()
 
         return InAppQuote(item.optString(if (roman) "roman" else "native"))
+    }
+
+    fun ambientQuote(language: String, roman: Boolean): InAppQuote? {
+        val languageNode = catalog.optJSONObject("languages")?.optJSONObject(language) ?: return null
+        val ambient = languageNode.optJSONArray("ambient") ?: return null
+        if (ambient.length() == 0) return null
+
+        val all = (0 until ambient.length()).mapNotNull { index ->
+            val quote = ambient.optJSONObject(index) ?: return@mapNotNull null
+            val id = quote.optString("id").trim()
+            val native = quote.optString("native").trim()
+            if (id.isBlank() || native.isBlank()) return@mapNotNull null
+            AmbientQuoteCandidate(
+                id = id,
+                tone = quote.optString("tone", "neutral"),
+                lane = quote.optString("lane"),
+                native = native,
+                roman = quote.optString("roman").ifBlank { native }
+            )
+        }
+        if (all.isEmpty()) return null
+
+        return synchronized(chooseLock) {
+            val lane = AmbientQuotePicker.currentLane(LocalDateTime.now())
+            val chosen = AmbientQuotePicker.choose(
+                all = all,
+                lane = lane,
+                lastTone = history.getString("last_ambient_tone_$language", null),
+                lastId = history.getString("last_ambient_id_$language", null)
+            ) ?: return@synchronized null
+
+            history.edit()
+                .putString("last_ambient_tone_$language", chosen.tone)
+                .putString("last_ambient_id_$language", chosen.id)
+                .apply()
+
+            InAppQuote(if (roman) chosen.roman else chosen.native)
+        }
     }
 
     private fun choose(language: String, choices: List<JSONObject>): JSONObject? =

@@ -33,13 +33,21 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_date ON transactions(date)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_categoryId ON transactions(categoryId)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_normalizedMerchant ON transactions(normalizedMerchant)")
+    }
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
     @Provides @Singleton
     fun provideDatabase(@ApplicationContext context: Context): KhataDatabase =
         Room.databaseBuilder(context, KhataDatabase::class.java, "khata.db")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
 
     @Provides

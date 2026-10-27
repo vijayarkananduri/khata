@@ -2,6 +2,7 @@ package com.khata
 
 import android.Manifest
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -49,10 +50,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,6 +69,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationManagerCompat
 import com.khata.data.db.AccountEntity
 import com.khata.data.db.TransactionEntity
+import com.khata.data.backup.CsvTransactionCodec
+import com.khata.data.updates.GitHubReleaseChecker
+import com.khata.data.updates.GitHubUpdateResult
 import com.khata.domain.stats.SpendPeriod
 import com.khata.domain.stats.SpendPeriodRanges
 import com.khata.data.prefs.UserSettings
@@ -97,6 +99,9 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun KhataRoot(viewModel: KhataViewModel = hiltViewModel()) {
@@ -296,11 +301,10 @@ private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabl
     val latestSelected by rememberUpdatedState(selected)
     val latestOnSelect by rememberUpdatedState(onSelect)
     DewSurface(
-        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 12.dp).height(68.dp),
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 16.dp).height(68.dp),
         shape = RoundedCornerShape(32.dp), zIndex = 90f,
         tone = MaterialTheme.colorScheme.surface, elevation = 17.dp, reduceMotion = reduceMotion
     ) {
-        val haptic = LocalHapticFeedback.current
         val dragThresholdPx = with(LocalDensity.current) { 48.dp.toPx() }
         Row(
             Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 7.dp)
@@ -323,10 +327,7 @@ private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabl
                             while (currentIndex != target) {
                                 currentIndex += if (target > currentIndex) 1 else -1
                                 latestOnSelect(navItems[currentIndex])
-                                if (hapticsEnabled) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    performKhataHaptic(context)
-                                }
+                                if (hapticsEnabled) performKhataHaptic(context)
                             }
                         },
                         onDragEnd = { dragTotal = 0f },
@@ -338,7 +339,8 @@ private fun KhataBottomBar(selected: String, reduceMotion: Boolean, hapticsEnabl
         ) {
             navItems.forEachIndexed { index, item ->
                 val active = selected == item
-                val width by animateDpAsState(if (active) 112.dp else 48.dp, animationSpec = if (reduceMotion) snap() else spring(dampingRatio = .72f, stiffness = 440f), label = "nav-width-$item")
+                val activeWidth = when (item) { "Calendar" -> 140.dp; "Analysis", "Settings" -> 132.dp; else -> 100.dp }
+                val width by animateDpAsState(if (active) activeWidth else 42.dp, animationSpec = if (reduceMotion) snap() else spring(dampingRatio = .72f, stiffness = 440f), label = "nav-width-$item")
                 val icon = when (item) {
                     "Home" -> Icons.Outlined.Home
                     "Calendar" -> Icons.Outlined.CalendarMonth
@@ -397,11 +399,14 @@ private fun HomeScreen(
     val budgetMode = settings.monthlyBudgetPaise > 0L
     val selectedPeriod = if (budgetMode) SpendPeriod.MONTH else SpendPeriod.DAY
     val currentRange = SpendPeriodRanges.current(selectedPeriod, today)
-    val qualifying = transactions.filter { it.type == "EXPENSE" || it.type == "REFUND" }
-    val currentSpend = netSpend(qualifying.filter { currentRange.contains(it.date) })
+    val currentSpend = remember(transactions, currentRange) {
+        netSpend(transactions.filter { (it.type == "EXPENSE" || it.type == "REFUND") && currentRange.contains(it.date) })
+    }
+    val dueNudge = remember(transactions, today) { NudgeCadence.due(transactions, today).firstOrNull() }
     val quoteRepo = rememberQuoteRepo()
     val lifecycleOwner = LocalLifecycleOwner.current
     var resumeToken by remember { mutableIntStateOf(0) }
+    var showQuoteNote by rememberSaveable { mutableStateOf(false) }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) resumeToken++
@@ -414,7 +419,10 @@ private fun HomeScreen(
         budgetMode && currentSpend > settings.monthlyBudgetPaise -> "OVERSPEND"
         else -> "DAILY_NOTE"
     }
-    val quote = remember(settings.language, settings.romanScript, trigger, resumeToken) {
+    val ambientQuote = remember(settings.language, settings.romanScript, resumeToken) {
+        quoteRepo.ambientQuote(settings.language, settings.romanScript)
+    }
+    val quote = ambientQuote ?: remember(settings.language, settings.romanScript, trigger, resumeToken) {
         quoteRepo.forTrigger(settings.language, trigger, settings.romanScript)
     }
     val hour = java.time.LocalTime.now().hour
@@ -428,7 +436,7 @@ private fun HomeScreen(
             }
             IconButton(onClick = onSearch, modifier = Modifier.size(48.dp)) { Icon(Icons.Outlined.Search, contentDescription = "Search transactions") }
         }
-        quote?.let { QuoteBanner(it.text, reduceMotion) }
+        quote?.let { QuoteBanner(it.text, reduceMotion, onReadMore = { showQuoteNote = true }) }
         Spacer(Modifier.height(12.dp))
         SpendingSummaryCard(currentSpend, if (budgetMode) settings.monthlyBudgetPaise else 0L, reduceMotion)
         if (reviewCount > 0) {
@@ -441,7 +449,7 @@ private fun HomeScreen(
             }
         }
         if (settings.nudgesEnabled) {
-            NudgeCadence.due(transactions, today).firstOrNull()?.let { nudge ->
+            dueNudge?.let { nudge ->
                 Spacer(Modifier.height(12.dp))
                 DewSurface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), zIndex = 16f, tone = MaterialTheme.colorScheme.secondaryContainer, elevation = 10.dp, reduceMotion = reduceMotion) {
                     Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -456,6 +464,7 @@ private fun HomeScreen(
         else transactions.take(4).forEach { TransactionRow(it, onClick = { onTransaction(it) }) }
         Spacer(Modifier.height(90.dp))
     }
+    if (showQuoteNote) quote?.let { QuoteNoteDialog(it.text, onDismiss = { showQuoteNote = false }) }
 }
 
 @Composable
@@ -499,10 +508,50 @@ private fun SpendingSummaryCard(spent: Long, budget: Long, reduceMotion: Boolean
 }
 
 @Composable
-private fun QuoteBanner(text: String, reduceMotion: Boolean) {
-    DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(24.dp), zIndex = 11f, tone = MaterialTheme.colorScheme.surface, elevation = 11.dp, reduceMotion = reduceMotion) {
-        Box(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 15.dp), contentAlignment = Alignment.CenterStart) {
+private fun QuoteBanner(text: String, reduceMotion: Boolean, onReadMore: () -> Unit) {
+    val longQuote = text.codePointCount(0, text.length) > 64
+    DewSurface(
+        modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(24.dp),
+        zIndex = 11f, tone = MaterialTheme.colorScheme.surface, elevation = 11.dp,
+        reduceMotion = reduceMotion, onClick = if (longQuote) onReadMore else null
+    ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 15.dp)) {
             Text(text, fontFamily = CaveatFamily, fontWeight = FontWeight.Bold, fontSize = 25.sp, lineHeight = 31.sp, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
+            if (longQuote) {
+                Spacer(Modifier.height(7.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Tap to read the full note", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuoteNoteDialog(text: String, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            shape = RoundedCornerShape(30.dp),
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            shadowElevation = 20.dp
+        ) {
+            Column(Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()).padding(24.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.StickyNote2, null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(9.dp))
+                    Text("A little note", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                }
+                Spacer(Modifier.height(18.dp))
+                Text(text, style = MaterialTheme.typography.headlineSmall.copy(lineHeight = 34.sp), color = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.height(18.dp))
+                Text("Keep this thought close.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text("Close") }
+            }
         }
     }
 }
@@ -577,15 +626,26 @@ private fun CalendarScreen(transactions: List<TransactionEntity>, onTransaction:
     val days = month.lengthOfMonth()
     val offset = month.atDay(1).dayOfWeek.value % 7
     val today = LocalDate.now()
-    val spendByDay = transactions.filter { (it.type == "EXPENSE" || it.type == "REFUND") && it.date.startsWith(month.toString()) }.groupBy { it.date.takeLast(2).toIntOrNull() ?: 1 }.mapValues { netSpend(it.value) }
-    val maxSpend = spendByDay.values.maxOrNull()?.coerceAtLeast(1) ?: 1
+    val spendByDay = remember(transactions, month) {
+        transactions.filter { (it.type == "EXPENSE" || it.type == "REFUND") && it.date.startsWith(month.toString()) }
+            .groupBy { it.date.takeLast(2).toIntOrNull() ?: 1 }.mapValues { netSpend(it.value) }
+    }
+    val maxSpend = remember(spendByDay) { spendByDay.values.maxOrNull()?.coerceAtLeast(1) ?: 1 }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Calendar", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { month = month.minusMonths(1) }) { Icon(Icons.Outlined.KeyboardArrowLeft, "Previous month") }
-                Text(month.format(DateTimeFormatter.ofPattern("MMMM yyyy")), fontWeight = FontWeight.Medium)
-                IconButton(onClick = { month = month.plusMonths(1) }) { Icon(Icons.Outlined.KeyboardArrowRight, "Next month") }
+                IconButton(onClick = {
+                    val selected = runCatching { LocalDate.parse(selectedDay) }.getOrDefault(month.atDay(1))
+                    month = month.minusMonths(1)
+                    selectedDay = month.atDay(selected.dayOfMonth.coerceAtMost(month.lengthOfMonth())).toString()
+                }) { Icon(Icons.Outlined.KeyboardArrowLeft, "Previous month") }
+                Text(month.format(DateTimeFormatter.ofPattern("MMM yyyy")), fontWeight = FontWeight.Medium, maxLines = 1, softWrap = false)
+                IconButton(onClick = {
+                    val selected = runCatching { LocalDate.parse(selectedDay) }.getOrDefault(month.atDay(1))
+                    month = month.plusMonths(1)
+                    selectedDay = month.atDay(selected.dayOfMonth.coerceAtMost(month.lengthOfMonth())).toString()
+                }) { Icon(Icons.Outlined.KeyboardArrowRight, "Next month") }
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) { listOf("S", "M", "T", "W", "T", "F", "S").forEach { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp)) } }
@@ -601,7 +661,7 @@ private fun CalendarScreen(transactions: List<TransactionEntity>, onTransaction:
             }
         }
         Spacer(Modifier.height(18.dp)); SectionTitle("${LocalDate.parse(selectedDay).format(DateTimeFormatter.ofPattern("d MMMM"))} · ${money(spendByDay[LocalDate.parse(selectedDay).dayOfMonth] ?: 0L)}")
-        val dayTxns = transactions.filter { it.date == selectedDay }
+        val dayTxns = remember(transactions, selectedDay) { transactions.filter { it.date == selectedDay } }
         if (dayTxns.isEmpty()) Text("No transactions on this day.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 12.dp))
         else LazyColumn { items(dayTxns) { TransactionRow(it) { onTransaction(it) } } }
     }
@@ -610,6 +670,17 @@ private fun CalendarScreen(transactions: List<TransactionEntity>, onTransaction:
 @Composable
 private fun AnalysisScreen(transactions: List<TransactionEntity>, categories: List<Pair<String, String>>, onTransaction: (TransactionEntity) -> Unit, onCategory: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
+    var selectedMonth by rememberSaveable { mutableIntStateOf(LocalDate.now().monthValue) }
+    var selectedYear by rememberSaveable { mutableIntStateOf(LocalDate.now().year) }
+    val year = selectedYear
+    val earliestYear = remember(transactions) {
+        transactions.mapNotNull { runCatching { LocalDate.parse(it.date).year }.getOrNull() }.minOrNull()?.coerceAtMost(LocalDate.now().year) ?: LocalDate.now().year
+    }
+    val monthPrefix = remember(year, selectedMonth) { "%04d-%02d".format(Locale.US, year, selectedMonth) }
+    val monthTransactions = remember(transactions, monthPrefix) { transactions.filter { it.date.startsWith(monthPrefix) } }
+    val monthExpensesAndRefunds = remember(monthTransactions) { monthTransactions.filter { it.type == "EXPENSE" || it.type == "REFUND" } }
+    val monthTotal = remember(monthExpensesAndRefunds) { netSpend(monthExpensesAndRefunds) }
+    val monthEntryCount = remember(monthExpensesAndRefunds) { monthExpensesAndRefunds.size }
     val filtered = remember(query, transactions) {
         val q = query.trim().lowercase()
         if (q.isBlank()) emptyList() else transactions.filter { t ->
@@ -622,20 +693,43 @@ private fun AnalysisScreen(transactions: List<TransactionEntity>, categories: Li
             }
         }
     }
-    val byCategory = transactions.filter { it.type == "EXPENSE" }.groupBy { it.categoryId }.mapValues { it.value.sumOf { t -> t.amountPaise } }.entries.sortedByDescending { it.value }
-    val merchantTop = transactions.filter { it.type == "EXPENSE" || it.type == "REFUND" }.groupBy { it.normalizedMerchant }.mapValues { netSpend(it.value) }.filterValues { it > 0L }.entries.sortedByDescending { it.value }.take(5)
+    val byCategory = remember(monthTransactions) {
+        monthTransactions.filter { it.type == "EXPENSE" || it.type == "REFUND" }
+            .groupBy { it.categoryId }
+            .mapValues { (_, items) -> netSpend(items) }
+            .filterValues { it > 0L }
+            .entries.sortedByDescending { it.value }
+    }
+    val merchantTop = remember(monthTransactions) {
+        monthTransactions.filter { it.type == "EXPENSE" || it.type == "REFUND" }
+            .groupBy { it.normalizedMerchant }
+            .mapValues { netSpend(it.value) }
+            .filterValues { it > 0L }
+            .entries.sortedByDescending { it.value }.take(5)
+    }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Text("Analysis", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 14.dp, bottom = 12.dp))
-        OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, leadingIcon = { Icon(Icons.Outlined.Search, null) }, placeholder = { Text("Merchant, category, amount (<500)") }, shape = RoundedCornerShape(16.dp))
+        OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, leadingIcon = { Icon(Icons.Outlined.Search, null) }, placeholder = { Text("Search transactions") }, shape = RoundedCornerShape(16.dp))
         if (query.isNotBlank()) {
             Text("Transactions", fontWeight = FontWeight.Medium, modifier = Modifier.padding(top = 16.dp))
             if (filtered.isEmpty()) Text("No matching transactions.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 12.dp))
             else LazyColumn { items(filtered) { TransactionRow(it) { onTransaction(it) } } }
         } else {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                Spacer(Modifier.height(18.dp)); SectionTitle("Spending this year")
-                YearHeatmap(transactions)
-                Spacer(Modifier.height(20.dp)); SectionTitle("Top merchants")
+                Spacer(Modifier.height(18.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    SectionTitle("Spending rhythm")
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { selectedYear = (selectedYear - 1).coerceAtLeast(earliestYear) }, enabled = selectedYear > earliestYear, modifier = Modifier.size(40.dp)) { Icon(Icons.Outlined.KeyboardArrowLeft, "Previous year") }
+                        Text(year.toString(), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        IconButton(onClick = { selectedYear = (selectedYear + 1).coerceAtMost(LocalDate.now().year) }, enabled = selectedYear < LocalDate.now().year, modifier = Modifier.size(40.dp)) { Icon(Icons.Outlined.KeyboardArrowRight, "Next year") }
+                    }
+                }
+                YearHeatmap(transactions, year, selectedMonth, onMonthSelected = { selectedMonth = it })
+                Spacer(Modifier.height(12.dp))
+                MonthSummaryCard(YearMonth.of(year, selectedMonth), monthTotal, monthEntryCount)
+                Spacer(Modifier.height(18.dp)); SectionTitle("Top merchants · ${YearMonth.of(year, selectedMonth).format(DateTimeFormatter.ofPattern("MMMM"))}")
+                if (merchantTop.isEmpty()) Text("No recorded spending for this month.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
                 merchantTop.forEachIndexed { index, entry ->
                     Row(Modifier.fillMaxWidth().padding(vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("${index + 1}", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(28.dp))
@@ -643,7 +737,7 @@ private fun AnalysisScreen(transactions: List<TransactionEntity>, categories: Li
                         Text(money(entry.value), fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
                     }
                 }
-                Spacer(Modifier.height(20.dp)); SectionTitle("How you spent")
+                Spacer(Modifier.height(20.dp)); SectionTitle("Categories · ${YearMonth.of(year, selectedMonth).format(DateTimeFormatter.ofPattern("MMMM"))}")
                 val total = byCategory.sumOf { it.value }.coerceAtLeast(0L)
                 if (byCategory.isEmpty()) {
                     DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(28.dp), tone = MaterialTheme.colorScheme.surface.copy(alpha = .80f), elevation = 13.dp) {
@@ -718,62 +812,84 @@ private fun CategoryDonut(items: List<Pair<String, Long>>, total: Long) {
 }
 
 @Composable
-private fun YearHeatmap(transactions: List<TransactionEntity>) {
-    val year = LocalDate.now().year
-    val byDate = transactions.filter { it.date.startsWith(year.toString()) && (it.type == "EXPENSE" || it.type == "REFUND") }.groupBy { it.date }.mapValues { netSpend(it.value) }
-    val max = byDate.values.maxOrNull()?.coerceAtLeast(1) ?: 1
+private fun YearHeatmap(transactions: List<TransactionEntity>, year: Int, selectedMonth: Int, onMonthSelected: (Int) -> Unit) {
+    val byDate = remember(transactions, year) {
+        transactions.filter { it.date.startsWith(year.toString()) && (it.type == "EXPENSE" || it.type == "REFUND") }
+            .groupBy { it.date }.mapValues { netSpend(it.value) }
+    }
+    val maximum = byDate.values.maxOrNull()?.coerceAtLeast(1) ?: 1
     val today = LocalDate.now()
-    val weekdayLabels = listOf("S", "M", "T", "W", "T", "F", "S")
-    DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), shape = RoundedCornerShape(28.dp), zIndex = 36f, tone = MaterialTheme.colorScheme.surface, elevation = 12.dp) {
-        Column(Modifier.fillMaxWidth().padding(12.dp)) {
-            (1..12).map { YearMonth.of(year, it) }.chunked(2).forEach { pair ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
-                    pair.forEach { month ->
-                        val offset = month.atDay(1).dayOfWeek.value % 7
-                        val dates = List(offset) { null } + (1..month.lengthOfMonth()).map { month.atDay(it) }
-                        val padded = dates + List((7 - dates.size % 7) % 7) { null }
-                        val weeks = padded.chunked(7)
-                        Column(Modifier.weight(1f).padding(horizontal = 4.dp, vertical = 6.dp)) {
-                            Text(month.format(DateTimeFormatter.ofPattern("MMM")), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                            Spacer(Modifier.height(4.dp))
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                weekdayLabels.forEach { label -> Text(label, Modifier.weight(1f), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
-                            }
-                            Spacer(Modifier.height(3.dp))
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                weeks.forEach { week ->
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        week.forEach { date ->
-                                            val amount = date?.let { byDate[it.toString()] ?: 0L } ?: 0L
-                                            val intensity = if (amount == 0L) 0f else (amount.toFloat() / max.toFloat()).coerceIn(0f, 1f)
-                                            val tint = when {
-                                                date == null -> Color.Transparent
-                                                date.isAfter(today) -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .20f)
-                                                amount == 0L -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .65f)
-                                                intensity < .25f -> MaterialTheme.colorScheme.primary.copy(alpha = .30f)
-                                                intensity < .50f -> MaterialTheme.colorScheme.primary.copy(alpha = .48f)
-                                                intensity < .75f -> MaterialTheme.colorScheme.primary.copy(alpha = .68f)
-                                                else -> MaterialTheme.colorScheme.primary.copy(alpha = .90f)
-                                            }
-                                            Box(Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(3.dp)).background(tint))
-                                        }
-                                    }
+    val firstDay = LocalDate.of(year, 1, 1)
+    val weeks = remember(year) {
+        val leading = firstDay.dayOfWeek.value % 7
+        val dates: List<LocalDate?> = List(leading) { null } + (0 until firstDay.lengthOfYear()).map { firstDay.plusDays(it.toLong()) }
+        (dates + List((7 - dates.size % 7) % 7) { null }).chunked(7)
+    }
+    Column {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            (1..12).forEach { month ->
+                FilterChip(
+                    selected = selectedMonth == month,
+                    onClick = { onMonthSelected(month) },
+                    label = { Text(YearMonth.of(year, month).format(DateTimeFormatter.ofPattern("MMMM")), maxLines = 1) }
+                )
+            }
+        }
+        DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), shape = RoundedCornerShape(24.dp), zIndex = 36f, tone = MaterialTheme.colorScheme.surface, elevation = 11.dp) {
+            Column(Modifier.fillMaxWidth().padding(12.dp)) {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                    weeks.forEach { week ->
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            week.forEach { date ->
+                                val amount = date?.let { byDate[it.toString()] ?: 0L } ?: 0L
+                                val intensity = if (amount <= 0L) 0f else (amount.toFloat() / maximum.toFloat()).coerceIn(0f, 1f)
+                                val selected = date?.monthValue == selectedMonth
+                                val alpha = when {
+                                    date == null -> 0f
+                                    date.isAfter(today) -> .14f
+                                    amount <= 0L -> if (selected) .34f else .18f
+                                    intensity < .25f -> if (selected) .46f else .26f
+                                    intensity < .50f -> if (selected) .62f else .36f
+                                    intensity < .75f -> if (selected) .78f else .46f
+                                    else -> if (selected) .94f else .58f
                                 }
+                                val tint = if (date == null || (date != null && date.isAfter(today))) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha)
+                                    else if (amount <= 0L) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha)
+                                    else MaterialTheme.colorScheme.primary.copy(alpha = alpha)
+                                Box(Modifier.size(11.dp).clip(RoundedCornerShape(3.dp)).background(tint))
                             }
                         }
                     }
                 }
-            }
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp, end = 4.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                Text("Less", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.width(5.dp))
-                listOf(.30f, .48f, .68f, .90f).forEach { alpha -> Box(Modifier.padding(horizontal = 2.dp).size(11.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))) }
-                Spacer(Modifier.width(5.dp))
-                Text("More", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Less", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.width(5.dp))
+                    listOf(.26f, .42f, .62f, .82f).forEach { alpha -> Box(Modifier.padding(horizontal = 2.dp).size(10.dp).clip(RoundedCornerShape(3.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))) }
+                    Spacer(Modifier.width(5.dp))
+                    Text("More", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }
 }
+
+@Composable
+private fun MonthSummaryCard(month: YearMonth, total: Long, entries: Int) {
+    DewSurface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), zIndex = 37f, tone = MaterialTheme.colorScheme.surface, elevation = 12.dp) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(month.format(DateTimeFormatter.ofPattern("MMMM yyyy")).uppercase(Locale.US), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = .7.sp)
+                Spacer(Modifier.height(4.dp))
+                Text(money(total), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text("$entries", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                Text(if (entries == 1) "entry" else "entries", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun CategoryDetailScreen(categoryId: String, transactions: List<TransactionEntity>, onBack: () -> Unit, onTransaction: (TransactionEntity) -> Unit) {
@@ -791,6 +907,7 @@ private fun CategoryDetailScreen(categoryId: String, transactions: List<Transact
 @Composable
 private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, transactions: List<TransactionEntity>, accounts: List<AccountEntity>, onClear: () -> Unit) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val reduceMotion = shouldReduceMotion(settings.reduceMotion)
     var username by remember(settings.username) { mutableStateOf(settings.username) }
     var budget by remember(settings.monthlyBudgetPaise) { mutableStateOf(if (settings.monthlyBudgetPaise > 0) (settings.monthlyBudgetPaise / 100.0).toString() else "") }
@@ -798,9 +915,56 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
     var notificationsEnabled by remember { mutableStateOf(NotificationHelper.canNotify(context)) }
     var toastMessage by remember { mutableStateOf("") }
     var showWidgetPicker by remember { mutableStateOf(false) }
+    var importMessage by remember { mutableStateOf("") }
+    var pendingImport by remember { mutableStateOf<List<TransactionEntity>?>(null) }
+    var checkingUpdates by remember { mutableStateOf(false) }
+    var updateMessage by remember { mutableStateOf("") }
+    var updateResult by remember { mutableStateOf<GitHubUpdateResult?>(null) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         notificationsEnabled = granted && NotificationHelper.canNotify(context)
         if (notificationsEnabled) NotificationHelper.showPermissionSuccess(context)
+    }
+    val csvExport = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        if (uri != null) {
+            val snapshot = transactions.toList()
+            coroutineScope.launch {
+                importMessage = "Preparing ${snapshot.size} transaction rows…"
+                try {
+                    withContext(Dispatchers.IO) {
+                        val output = context.contentResolver.openOutputStream(uri)
+                            ?: error("Unable to open the selected destination.")
+                        output.bufferedWriter(Charsets.UTF_8).use { it.write(CsvTransactionCodec.encode(snapshot)) }
+                    }
+                    importMessage = "Exported ${snapshot.size} transactions to CSV."
+                } catch (error: Exception) {
+                    importMessage = "Export failed: ${error.message ?: "could not write the file"}"
+                }
+            }
+        }
+    }
+    val csvImport = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            val fallbackAccount = accounts.firstOrNull()?.id ?: "manual"
+            val accountIds = accounts.map { it.id }.toSet() + fallbackAccount
+            coroutineScope.launch {
+                importMessage = "Reading transaction file…"
+                try {
+                    val parsed = withContext(Dispatchers.IO) {
+                        CsvTransactionCodec.decode(readLimitedCsv(context, uri), fallbackAccount, accountIds)
+                    }
+                    pendingImport = parsed
+                    importMessage = ""
+                } catch (error: Exception) {
+                    importMessage = "Import failed: ${error.message ?: "the file could not be read"}"
+                }
+            }
+        }
+    }
+    val accountBalances = remember(accounts, transactions) {
+        accounts.associate { account ->
+            account.id to (account.openingBalancePaise + transactions.asSequence().filter { it.accountId == account.id }
+                .sumOf { if (it.direction == "CREDIT") it.amountPaise else -it.amountPaise })
+        }
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
         Text("Settings", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 14.dp, bottom = 20.dp))
@@ -814,7 +978,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Read in English letters", Modifier.weight(1f)); Switch(settings.romanScript, { viewModel.roman(it) }) }
         Spacer(Modifier.height(12.dp)); SectionTitle("Appearance")
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("SYSTEM" to "System", "WALLPAPER" to "Wallpaper", "LIGHT" to "Light", "DARK" to "Dark").forEach { (value, label) -> FilterChip(selected = settings.themeMode == value, onClick = { viewModel.theme(value) }, label = { Text(label) }) } }
-        Text(if (settings.themeMode == "WALLPAPER") "Uses Android wallpaper colors on Android 12+; other versions use Khata’s accessible palette." else "Theme-aware ink, accessible contrast and one warm Ember palette.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
+        Text(if (settings.themeMode == "WALLPAPER") "Uses wallpaper-derived accents on Android 12+ while keeping warm-paper surfaces and readable ink; older versions use Khata’s fixed palette." else "Theme-aware ink, accessible contrast and one warm Ember palette.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Reduce motion", Modifier.weight(1f)); listOf("FOLLOW_SYSTEM", "ON", "OFF").forEach { value -> FilterChip(selected = settings.reduceMotion == value, onClick = { viewModel.motion(value) }, label = { Text(when (value) { "FOLLOW_SYSTEM" -> "Auto"; else -> value.lowercase().replaceFirstChar { it.uppercase() } }) }) } }
         Row(verticalAlignment = Alignment.CenterVertically) { Text("Haptics", Modifier.weight(1f)); Switch(settings.hapticsEnabled, { viewModel.haptics(it) }) }
         Spacer(Modifier.height(10.dp)); SectionTitle("Smart nudges")
@@ -875,8 +1039,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         Spacer(Modifier.height(12.dp)); SectionTitle("Accounts")
         if (accounts.isEmpty()) Text("Loading accounts…", color = MaterialTheme.colorScheme.onSurfaceVariant)
         accounts.forEach { account ->
-            val accountTransactions = transactions.filter { it.accountId == account.id }
-            val balance = account.openingBalancePaise + accountTransactions.sumOf { transaction -> if (transaction.direction == "CREDIT") transaction.amountPaise else -transaction.amountPaise }
+            val balance = accountBalances[account.id] ?: account.openingBalancePaise
             Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(18.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
                 Row(Modifier.padding(horizontal = 14.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondary.copy(alpha = .14f)), contentAlignment = Alignment.Center) { Icon(if (account.accountType == "BANK") Icons.Outlined.AccountBalance else Icons.Outlined.Wallet, null, tint = MaterialTheme.colorScheme.secondary) }
@@ -888,20 +1051,64 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         }
         if (toastMessage.isNotBlank()) { Text(toastMessage, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)); TextButton(onClick = { toastMessage = "" }) { Text("Dismiss") } }
         Spacer(Modifier.height(16.dp)); SectionTitle("Data")
-        OutlinedButton(onClick = {
-            val csv = buildString {
-                appendLine("date,merchant,amount_rupees,direction,type,category,note")
-                transactions.forEach { t -> appendLine("${t.date},\"${t.rawText.replace("\"", "\"\"")}\",${t.amountPaise / 100.0},${t.direction},${t.type},${t.categoryId},\"${t.note.replace("\"", "\"\"")}\"") }
-            }
-            val send = Intent(Intent.ACTION_SEND).apply { type = "text/csv"; putExtra(Intent.EXTRA_SUBJECT, "Khata transactions.csv"); putExtra(Intent.EXTRA_TEXT, csv) }
-            context.startActivity(Intent.createChooser(send, "Export Khata CSV"))
-        }, modifier = Modifier.fillMaxWidth()) { Text("Export CSV · ${transactions.size} transactions") }
-        OutlinedButton(onClick = { toastMessage = "CSV import is planned; your local data has not changed." }, modifier = Modifier.fillMaxWidth()) { Text("Import CSV") }
+        OutlinedButton(onClick = { csvExport.launch("khata-transactions.csv") }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Outlined.FileDownload, null); Spacer(Modifier.width(8.dp)); Text("Export CSV · ${transactions.size} transactions")
+        }
+        OutlinedButton(onClick = { csvImport.launch(arrayOf("text/csv", "text/comma-separated-values", "application/vnd.ms-excel", "application/octet-stream")) }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Outlined.FileUpload, null); Spacer(Modifier.width(8.dp)); Text("Import transactions from CSV")
+        }
+        Text("Exports include every transaction. Imports are validated, merge with existing records, and skip IDs already present.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, lineHeight = 20.sp)
+        if (importMessage.isNotBlank()) Text(importMessage, color = if (importMessage.startsWith("Import failed") || importMessage.startsWith("Export failed")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
         Text("Khata 2.1.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text("Your transaction data stays on this device.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+        Text("Transactions stay on this device. Update checks contact GitHub only when you tap the button.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+        DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 12.dp).height(52.dp), shape = RoundedCornerShape(26.dp), zIndex = 42f, tone = MaterialTheme.colorScheme.primaryContainer, elevation = 11.dp, reduceMotion = reduceMotion, onClick = {
+            if (!checkingUpdates) {
+                checkingUpdates = true
+                updateMessage = "Checking the latest GitHub release…"
+                coroutineScope.launch {
+                    try {
+                        updateResult = GitHubReleaseChecker.check(context)
+                        updateMessage = if (updateResult?.updateAvailable == true) "Khata ${updateResult?.latestVersion} is available." else "You’re up to date · Khata ${updateResult?.currentVersion}."
+                    } catch (error: Exception) {
+                        updateResult = null
+                        updateMessage = error.message ?: "Could not check for updates. Try again when online."
+                    } finally {
+                        checkingUpdates = false
+                    }
+                }
+            }
+        }) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 18.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                Icon(Icons.Outlined.SystemUpdate, null, tint = MaterialTheme.colorScheme.primary); Spacer(Modifier.width(9.dp)); Text(if (checkingUpdates) "Checking…" else "Check for updates", fontWeight = FontWeight.SemiBold)
+            }
+        }
+        if (updateMessage.isNotBlank()) Text(updateMessage, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, modifier = Modifier.padding(top = 6.dp))
+        updateResult?.takeIf { it.updateAvailable }?.let { release ->
+            OutlinedButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(release.releaseUrl))) }, modifier = Modifier.fillMaxWidth()) { Text("Open Khata ${release.latestVersion} release") }
+        }
+        OutlinedButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vijayarkananduri/khata"))) }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Outlined.StarOutline, null); Spacer(Modifier.width(8.dp)); Text("Star Khata on GitHub")
+        }
         OutlinedButton(onClick = { clearConfirm = true }, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Icon(Icons.Outlined.Delete, null); Spacer(Modifier.width(8.dp)); Text("Clear all transaction data") }
         Spacer(Modifier.height(80.dp))
+    }
+    pendingImport?.let { imported ->
+        AlertDialog(
+            onDismissRequest = { pendingImport = null },
+            title = { Text("Import ${imported.size} transactions?") },
+            text = { Text("Khata will merge these rows with your current data. Matching transaction IDs are skipped; your existing records are not replaced.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingImport = null
+                    viewModel.importTransactions(imported) { result ->
+                        result.onSuccess { added -> importMessage = "Imported $added transactions; ${imported.size - added} duplicate IDs were skipped." }
+                            .onFailure { error -> importMessage = "Import failed: ${error.message ?: "database write failed"}" }
+                    }
+                }) { Text("Import") }
+            },
+            dismissButton = { TextButton(onClick = { pendingImport = null }) { Text("Cancel") } }
+        )
     }
     if (clearConfirm) AlertDialog(onDismissRequest = { clearConfirm = false }, title = { Text("Clear all data?") }, text = { Text("This permanently deletes all transactions from this device. Settings and categories stay.") }, confirmButton = { TextButton(onClick = { onClear(); clearConfirm = false }) { Text("Delete", color = MaterialTheme.colorScheme.error) } }, dismissButton = { TextButton(onClick = { clearConfirm = false }) { Text("Cancel") } })
 }
@@ -1003,7 +1210,7 @@ private fun QuickAddDialog(accounts: List<AccountEntity>, reduceMotion: Boolean,
 @Composable
 private fun SearchOverlay(transactions: List<TransactionEntity>, onClose: () -> Unit, onSelect: (TransactionEntity) -> Unit) {
     var query by remember { mutableStateOf("") }
-    val results = transactions.filter { it.rawText.contains(query, true) || (KhataCategories.names[it.categoryId] ?: "").contains(query, true) || (query.toLongOrNull()?.let { value -> it.amountPaise / 100 == value } ?: false) }
+    val results = remember(transactions, query) { transactions.filter { it.rawText.contains(query, true) || (KhataCategories.names[it.categoryId] ?: "").contains(query, true) || (query.toLongOrNull()?.let { value -> it.amountPaise / 100 == value } ?: false) } }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(0.dp)) {
             Column(Modifier.fillMaxSize().padding(16.dp)) {
@@ -1070,10 +1277,27 @@ private fun CategoryIcon(id: String, modifier: Modifier = Modifier, tint: Color 
 private fun categoryAccent(id: String): Color = when (KhataCategories.colors[id]) {
     "tide" -> MaterialTheme.colorScheme.secondary
     "saffron" -> MaterialTheme.colorScheme.tertiary
-    "plum" -> if (MaterialTheme.colorScheme.background == DarkBackground) Color(0xFFA07070) else Plum
+    "plum" -> androidx.compose.ui.graphics.lerp(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary, .5f)
     "brick" -> MaterialTheme.colorScheme.error
     "muted" -> MaterialTheme.colorScheme.onSurfaceVariant
     else -> MaterialTheme.colorScheme.primary
+}
+
+private fun readLimitedCsv(context: android.content.Context, uri: Uri): String {
+    val stream = context.contentResolver.openInputStream(uri) ?: error("Unable to open the selected file.")
+    stream.use { input ->
+        val output = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(8_192)
+        var total = 0
+        while (true) {
+            val read = input.read(buffer)
+            if (read < 0) break
+            total += read
+            require(total <= 10 * 1024 * 1024) { "CSV file is larger than 10 MiB." }
+            output.write(buffer, 0, read)
+        }
+        return String(output.toByteArray(), Charsets.UTF_8)
+    }
 }
 
 @Composable
@@ -1106,7 +1330,12 @@ private fun performKhataHaptic(context: android.content.Context) {
     runCatching {
         if (android.provider.Settings.System.getInt(context.contentResolver, android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) == 0) return
         val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) (context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator else (context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as Vibrator)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)) else vibrator.vibrate(18L)
+        if (!vibrator.hasVibrator()) return
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> vibrator.vibrate(VibrationEffect.createOneShot(18L, VibrationEffect.DEFAULT_AMPLITUDE))
+            else -> vibrator.vibrate(18L)
+        }
     }
 }
 

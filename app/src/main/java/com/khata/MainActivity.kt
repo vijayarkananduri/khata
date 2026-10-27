@@ -87,6 +87,14 @@ class KhataViewModel @Inject constructor(
     fun ignore(transaction: TransactionEntity) = viewModelScope.launch { repository.ignore(transaction.id) }
     fun delete(transaction: TransactionEntity) = viewModelScope.launch { repository.delete(transaction.id); refreshWidget() }
     fun clearAll() = viewModelScope.launch { repository.clearAll(); refreshWidget() }
+    fun importTransactions(transactions: List<TransactionEntity>, onComplete: (Result<Int>) -> Unit) = viewModelScope.launch {
+        runCatching { repository.importTransactions(transactions) }
+            .onSuccess { imported ->
+                if (imported > 0) refreshWidget()
+                onComplete(Result.success(imported))
+            }
+            .onFailure { error -> onComplete(Result.failure(error)) }
+    }
     fun username(value: String) = viewModelScope.launch { preferences.setUsername(value) }
     fun language(value: String) = viewModelScope.launch { preferences.setLanguage(value) }
     fun roman(value: Boolean) = viewModelScope.launch { preferences.setRoman(value) }

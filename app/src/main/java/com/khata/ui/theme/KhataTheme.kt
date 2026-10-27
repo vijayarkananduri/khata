@@ -6,6 +6,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -141,6 +142,44 @@ private val DarkScheme = darkColorScheme(
     surfaceTint = DarkEmber
 )
 
+private fun wallpaperLightScheme(context: android.content.Context): ColorScheme =
+    dynamicLightColorScheme(context).copy(
+        background = Parchment,
+        onBackground = LightInk,
+        surface = LightSurface,
+        onSurface = LightInk,
+        surfaceVariant = LightAlt,
+        onSurfaceVariant = LightMuted,
+        outline = LightBorder,
+        outlineVariant = Color(0xFFDCD2C5),
+        surfaceDim = LightAlt,
+        surfaceBright = LightSurface,
+        surfaceContainerLowest = LightSurface,
+        surfaceContainerLow = LightSurface,
+        surfaceContainer = LightSurface,
+        surfaceContainerHigh = LightAlt,
+        surfaceContainerHighest = LightAlt
+    )
+
+private fun wallpaperDarkScheme(context: android.content.Context): ColorScheme =
+    dynamicDarkColorScheme(context).copy(
+        background = DarkBackground,
+        onBackground = DarkInk,
+        surface = DarkSurface,
+        onSurface = DarkInk,
+        surfaceVariant = DarkAlt,
+        onSurfaceVariant = DarkMuted,
+        outline = DarkBorder,
+        outlineVariant = Color(0xFF594E42),
+        surfaceDim = DarkBackground,
+        surfaceBright = DarkAlt,
+        surfaceContainerLowest = DarkBackground,
+        surfaceContainerLow = DarkSurface,
+        surfaceContainer = DarkSurface,
+        surfaceContainerHigh = DarkAlt,
+        surfaceContainerHighest = DarkAlt
+    )
+
 @Composable
 fun KhataTheme(themeMode: String = "SYSTEM", content: @Composable () -> Unit) {
     val systemDark = isSystemInDarkTheme()
@@ -152,8 +191,8 @@ fun KhataTheme(themeMode: String = "SYSTEM", content: @Composable () -> Unit) {
     val context = LocalContext.current
     val dynamic = themeMode == "WALLPAPER" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val scheme = when {
-        dynamic && dark -> dynamicDarkColorScheme(context)
-        dynamic -> dynamicLightColorScheme(context)
+        dynamic && dark -> wallpaperDarkScheme(context)
+        dynamic -> wallpaperLightScheme(context)
         dark -> DarkScheme
         else -> LightScheme
     }

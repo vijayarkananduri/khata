@@ -48,6 +48,40 @@
           "film_year": null,
           "source_url": "https://www.youtube.com/results?search_query=ravi+kishan+pehchaan+money+follows"
         }
+      ],
+      "ambient": [
+        {
+          "id": "hi_amb_wise_01",
+          "native": "पैसा, पैसे को खींचता है।",
+          "roman": "Paisa, paise ko kheechta hai.",
+          "subtitle": "Money attracts money.",
+          "tone": "wise",
+          "lane": "morning"
+        },
+        {
+          "id": "hi_amb_witty_01",
+          "native": "वक़्त पर गाँठ का पैसा ही काम आता है।",
+          "roman": "Waqt par gaanth ka paisa hi kaam aata hai.",
+          "subtitle": "Only the money tied in your knot comes in handy at the right time.",
+          "tone": "witty",
+          "lane": "afternoon"
+        },
+        {
+          "id": "hi_amb_quiet_01",
+          "native": "धन जिस तरह आता है, उसी तरह चला जाता है।",
+          "roman": "Dhan jis tarah aata hai, usi tarah chala jaata hai.",
+          "subtitle": "Money goes away just as it comes.",
+          "tone": "quiet",
+          "lane": "night"
+        },
+        {
+          "id": "hi_amb_punchy_01",
+          "native": "सख़ी का ख़ज़ाना कभी ख़ाली नहीं होता।",
+          "roman": "Sakhi ka khazana kabhi khaali nahi hota.",
+          "subtitle": "The generous one's treasury is never empty.",
+          "tone": "punchy",
+          "lane": "payday"
+        }
       ]
     },
     "te": {
@@ -88,6 +122,40 @@
           "film_title": "Lalitha Jewellery ad (cultural tagline)",
           "film_year": null,
           "source_url": "https://www.youtube.com/results?search_query=lalitha+jewellery+dabbulu+evariki+urike+ravu"
+        }
+      ],
+      "ambient": [
+        {
+          "id": "te_amb_wise_01",
+          "native": "పొదుపు చేసిన పైసా సంపాదించిన పైసా.",
+          "roman": "Podupu chesina paisā sampādinchina paisā.",
+          "subtitle": "A penny saved is a penny earned.",
+          "tone": "wise",
+          "lane": "morning"
+        },
+        {
+          "id": "te_amb_witty_01",
+          "native": "డబ్బు, డబ్బు, డబ్బు... ఇదేరా ఈ మనిషికున్న జబ్బు.",
+          "roman": "Dabbu, dabbu, dabbu... idhera ee manishikunna jabbu.",
+          "subtitle": "Money, money, money — this is the sickness this man has.",
+          "tone": "witty",
+          "lane": "afternoon"
+        },
+        {
+          "id": "te_amb_punchy_01",
+          "native": "చేతిలో చిల్లిగవ్వ లేదు.",
+          "roman": "Chetilo chilligavva ledu.",
+          "subtitle": "Not a single copper coin in hand.",
+          "tone": "punchy",
+          "lane": "month_end"
+        },
+        {
+          "id": "te_amb_quiet_01",
+          "native": "మోసం చేసి సంపాదించిన సొత్తు తరిగి పోతుంది.",
+          "roman": "Mōsaṁ cēsi sampādinchina sottu tarigi pōtundi.",
+          "subtitle": "Wealth earned by deceit diminishes.",
+          "tone": "quiet",
+          "lane": "night"
         }
       ]
     },
@@ -130,6 +198,32 @@
           "film_year": "1995",
           "source_url": "https://www.thehindu.com/business/Industry/business-leaders-draw-lessons-from-rajini-films/article7823456.ece"
         }
+      ],
+      "ambient": [
+        {
+          "id": "ta_amb_wise_01",
+          "native": "பணம் போனா ஒன்னும் போகல... ஆனா நேரம் போனா அது திரும்பி வராது.",
+          "roman": "Panam pona onnum pogala... aana neram pona adhu thirumbi varaadhu.",
+          "subtitle": "Money lost is nothing lost. But time lost never returns.",
+          "tone": "wise",
+          "lane": "morning"
+        },
+        {
+          "id": "ta_amb_witty_01",
+          "native": "வேல்ஸ் இருக்கு பட் மணி இல்ல.",
+          "roman": "Wallet iruku but money illa.",
+          "subtitle": "I have a wallet, but no money.",
+          "tone": "witty",
+          "lane": "afternoon"
+        },
+        {
+          "id": "ta_amb_quiet_01",
+          "native": "காசைக் கொடுத்து நோயை விலைக்கு வாங்காதே.",
+          "roman": "Kaasai koduthu noyai vilaikku vaangaadhe.",
+          "subtitle": "Don't spend money to buy disease.",
+          "tone": "quiet",
+          "lane": "night"
+        }
       ]
     },
     "ml": {
@@ -171,6 +265,32 @@
           "film_year": "2000",
           "source_url": "https://timesofindia.indiatimes.com/entertainment/malayalam/movies/news/mohanlal-decodes-the-iconic-nee-po-mone-dinesha-line-from-narasimham/articleshow/119067890.cms"
         }
+      ],
+      "ambient": [
+        {
+          "id": "ml_amb_wise_01",
+          "native": "പണം വരും പോകും, പ്രണയം വരും പോകും, ഒരാക്കം വരും... പക്ഷേ പോകൂലാ പോകൂലാ.",
+          "roman": "Panam varum pokum, pranayam varum pokum, orakkam varum... pakshe pokoola pokoola.",
+          "subtitle": "Money comes and goes, love comes and goes, sleep comes... but it won't go.",
+          "tone": "wise",
+          "lane": "night"
+        },
+        {
+          "id": "ml_amb_witty_01",
+          "native": "ബെസ്റ്റ് കണ്ണാ ബെസ്റ്റ്.",
+          "roman": "Best kanna best.",
+          "subtitle": "Best, my dear, best.",
+          "tone": "witty",
+          "lane": "afternoon"
+        },
+        {
+          "id": "ml_amb_quiet_01",
+          "native": "മനസ്സിൽ കുറ്റബോധം തോന്നിത്തുടങ്ങിയാൽ പിന്നെ ചെയ്യുന്നതൊക്കെ യാന്ത്രികമായിരിക്കും.",
+          "roman": "Manassil kuttabodham thonnithudangiyal pinne cheyyunnathellam yanthrikamayirikkum.",
+          "subtitle": "Once guilt enters the mind, everything done afterward becomes mechanical.",
+          "tone": "quiet",
+          "lane": "night"
+        }
       ]
     },
     "kn": {
@@ -211,6 +331,32 @@
           "film_title": "Kannada viral reel (meme)",
           "film_year": null,
           "source_url": null
+        }
+      ],
+      "ambient": [
+        {
+          "id": "kn_amb_wise_01",
+          "native": "ಹಣ ಕಂಡ್ರೆ ಹೆಣಾನೂ ಬಾಯಿ ಬಿಡುತ್ತೆ.",
+          "roman": "Haṇa kaṇḍre heṇānū bāyi biḍutte.",
+          "subtitle": "Even a dead body will open its mouth with desire if it sees money.",
+          "tone": "wise",
+          "lane": "night"
+        },
+        {
+          "id": "kn_amb_witty_01",
+          "native": "ಮೂರ್ಕಾಸಿನ ಗಳಿಕೆ, ಆರ್ಕಾಸಿನ ಬಳಕೆ.",
+          "roman": "Mūrkāsina gaḷike, ārkāsina baḷake.",
+          "subtitle": "Earning three penny, spending six penny.",
+          "tone": "witty",
+          "lane": "month_end"
+        },
+        {
+          "id": "kn_amb_punchy_01",
+          "native": "ಕಾಸು ದುಡ್ಡು ಹಣ ರೊಕ್ಕ ಎಲ್ಲಿ ತನಕ...",
+          "roman": "Kaasu duddu hana rokka elli tanaka...",
+          "subtitle": "Cash, money, wealth, riches — how far will they go...",
+          "tone": "punchy",
+          "lane": "payday"
         }
       ]
     }

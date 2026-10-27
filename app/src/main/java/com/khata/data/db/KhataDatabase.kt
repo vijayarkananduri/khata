@@ -11,7 +11,10 @@ import androidx.room.Query
 import androidx.room.RoomDatabase
 import kotlinx.coroutines.flow.Flow
 
-@Entity(tableName = "transactions")
+@Entity(
+    tableName = "transactions",
+    indices = [Index(value = ["date"]), Index(value = ["categoryId"]), Index(value = ["normalizedMerchant"])]
+)
 data class TransactionEntity(
     @PrimaryKey val id: String,
     val rawText: String,
@@ -64,7 +67,7 @@ data class AccountEntity(
 
 @Dao
 interface KhataDao {
-    @Query("SELECT * FROM transactions ORDER BY date DESC, id DESC LIMIT 500")
+    @Query("SELECT * FROM transactions ORDER BY date DESC, id DESC")
     fun observeTransactions(): Flow<List<TransactionEntity>>
 
     @Query("SELECT * FROM transactions WHERE categoryId = 'uncategorized' AND isReviewed = 0 ORDER BY date DESC")
@@ -78,6 +81,9 @@ interface KhataDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTransactions(transactions: List<TransactionEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertImportedTransactions(transactions: List<TransactionEntity>): List<Long>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: CategoryEntity)
@@ -124,7 +130,7 @@ interface KhataDao {
 
 @Database(
     entities = [TransactionEntity::class, CategoryEntity::class, MerchantRuleEntity::class, AccountEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class KhataDatabase : RoomDatabase() {

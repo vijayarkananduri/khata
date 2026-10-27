@@ -95,6 +95,12 @@ class KhataRepository @Inject constructor(private val dao: KhataDao) {
     suspend fun ignore(id: String) = dao.ignoreTransaction(id)
     suspend fun delete(id: String) = dao.deleteTransaction(id)
     suspend fun clearAll() = dao.clearTransactions()
+
+    suspend fun importTransactions(transactions: List<TransactionEntity>): Int {
+        if (transactions.isEmpty()) return 0
+        return dao.insertImportedTransactions(transactions).count { it != -1L }
+    }
+
     suspend fun ruleFor(pattern: String, categoryId: String) {
         dao.insertRule(MerchantRuleEntity(UUID.randomUUID().toString(), pattern, "CONTAINS", categoryId, priority = 100, isUserCreated = true))
     }

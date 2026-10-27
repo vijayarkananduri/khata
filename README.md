@@ -47,19 +47,21 @@ It tracks. That's the whole job. It does the job quietly.
 
 ## What it does
 
-**Tracks, privately.** Log expenses, income, transfers and old transactions in a few taps. Everything stays on your device, and you can export it all as CSV.
+**Tracks, privately.** Log expenses, income, transfers and past transactions in a few taps. Everything stays on your device. Import a validated CSV or export your full transaction history whenever you need it.
 
-**Shows your year like a commit graph.** A GitHub-style heatmap of your spending. Dark squares are the days your wallet had opinions.
+**Shows your year like a commit graph.** A compact GitHub-style heatmap lets you pick a month and year to see focused spending, categories and top merchants without burying the useful numbers.
 
 **Nudges you before you run out.** Once Khata has seen you buy the same item more than twice, it works out how often you buy it and reminds you when the next purchase is due. A litre of milk that lasts two days gets a reminder on day two. The maths happens on your phone, and you can turn nudges off in Settings.
 
 **Lives on your home screen.** Widgets for daily, weekly, monthly or all-time totals, and for monthly budget progress.
 
-**Has a personality.** Short quotes inspired by movies and memes, because money tracking does not need to feel like a tax audit.
+**Has a personality.** Time-aware quotes in your language bring a little warmth to the home screen. Long notes open in full when you tap them.
 
 **Speaks your language.** Hindi, Telugu, Tamil, Malayalam and Kannada, in the original script or in English letters.
 
-**Matches your phone.** Light, Dark, System, or colours pulled from your wallpaper.
+**Matches your phone.** Light, Dark, System or wallpaper-derived accents, with warm paper surfaces and readable ink kept consistent.
+
+**Stays current, on your terms.** Check for a new GitHub release or star the project from Settings. Khata contacts GitHub only when you ask it to check; this never uploads transaction data.
 
 ## Things Khata will never do
 

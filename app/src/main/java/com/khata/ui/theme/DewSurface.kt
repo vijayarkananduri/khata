@@ -35,7 +35,8 @@ import androidx.compose.ui.unit.dp
 fun DewBackdrop() {
     val background = androidx.compose.material3.MaterialTheme.colorScheme.background
     val dark = background.luminance() < .5f
-    val glowAlpha = if (dark) 0.10f else 0.11f
+    val accent = androidx.compose.material3.MaterialTheme.colorScheme.primary
+    val glowAlpha = if (dark) 0.045f else 0f
     Box(
         Modifier.fillMaxSize()
             .background(background)
@@ -46,7 +47,7 @@ fun DewBackdrop() {
                 .height(270.dp)
                 .background(
                     Brush.radialGradient(
-                        colors = listOf(Ember.copy(alpha = glowAlpha), Ember.copy(alpha = glowAlpha * .35f), Color.Transparent)
+                        colors = listOf(accent.copy(alpha = glowAlpha), accent.copy(alpha = glowAlpha * .35f), Color.Transparent)
                     ),
                     CircleShape
                 )
@@ -57,7 +58,7 @@ fun DewBackdrop() {
                 .height(240.dp)
                 .background(
                     Brush.radialGradient(
-                        colors = listOf(Ember.copy(alpha = glowAlpha * .7f), Color.Transparent)
+                        colors = listOf(accent.copy(alpha = glowAlpha * .65f), Color.Transparent)
                     ),
                     CircleShape
                 )
@@ -84,11 +85,10 @@ fun DewSurface(
         label = "dew-press"
     )
     val dark = androidx.compose.material3.MaterialTheme.colorScheme.background.luminance() < .5f
-    val topRim = if (dark) Color.White.copy(alpha = .28f) else Color.White.copy(alpha = .94f)
-    val lowerRim = androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = if (dark) .34f else .22f)
-    // Static glass-inspired gradient: intentionally no runtime blur/source graph, so it cannot
-    // trigger Haze's source/child draw recursion on any Android/Compose renderer.
-    val tint = tone.copy(alpha = .94f)
+    val outline = androidx.compose.material3.MaterialTheme.colorScheme.outline.copy(alpha = if (dark) .82f else .92f)
+    // A solid, palette-aware surface avoids light-theme banding and dynamic-color haze while
+    // retaining the soft lift and pressed scale without a fragile runtime blur graph.
+    val solidTone = tone.copy(alpha = 1f)
     Box(
         modifier = modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
@@ -101,23 +101,9 @@ fun DewSurface(
                     onClick = onClick
                 ) else Modifier
             )
-            .background(
-                Brush.verticalGradient(
-                    listOf(topRim.copy(alpha = if (dark) .16f else .34f), tint, tone.copy(alpha = .92f))
-                ),
-                shape
-            )
-            .border(
-                BorderStroke(1.dp, Brush.verticalGradient(listOf(topRim, lowerRim, lowerRim.copy(alpha = .10f)))),
-                shape
-            )
+            .background(solidTone, shape)
+            .border(BorderStroke(1.dp, outline), shape)
     ) {
-        Box(
-            Modifier.align(Alignment.TopCenter)
-                .fillMaxWidth(.72f)
-                .height(1.dp)
-                .background(Brush.horizontalGradient(listOf(Color.Transparent, topRim, Color.Transparent)))
-        )
         content()
     }
 }
