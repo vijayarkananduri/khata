@@ -1060,7 +1060,7 @@ private fun SettingsScreen(settings: UserSettings, viewModel: KhataViewModel, tr
         Text("Exports include every transaction. Imports are validated, merge with existing records, and skip IDs already present.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, lineHeight = 20.sp)
         if (importMessage.isNotBlank()) Text(importMessage, color = if (importMessage.startsWith("Import failed") || importMessage.startsWith("Export failed")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
         Spacer(Modifier.height(14.dp)); SectionTitle("About")
-        Text("Khata 2.1.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Khata 2.2.0 · Everyday, in balance.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Transactions stay on this device. Update checks contact GitHub only when you tap the button.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
         DewSurface(modifier = Modifier.fillMaxWidth().padding(top = 12.dp).height(52.dp), shape = RoundedCornerShape(26.dp), zIndex = 42f, tone = MaterialTheme.colorScheme.primaryContainer, elevation = 11.dp, reduceMotion = reduceMotion, onClick = {
             if (!checkingUpdates) {
