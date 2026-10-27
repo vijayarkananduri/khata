@@ -13,6 +13,7 @@ import androidx.room.Room
 import com.khata.R
 import com.khata.data.db.KhataDatabase
 import com.khata.data.db.MIGRATION_1_2
+import com.khata.data.db.MIGRATION_2_3
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -131,10 +132,11 @@ class KhataHomeWidgetProvider : AppWidgetProvider() {
                 var database: KhataDatabase? = null
                 try {
                     val db = Room.databaseBuilder(appContext, KhataDatabase::class.java, "khata.db")
-                        .addMigrations(MIGRATION_1_2).build()
+                        .addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
                     database = db
                     val today = LocalDate.now()
                     val preferences = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    val palette = WidgetTheme.resolve(appContext)
                     val updates = ids.map { widgetId ->
                         val period = WidgetPeriod.fromKey(preferences.getString(periodPreferenceKey(widgetId), null))
                         val (start, endInclusive) = period.dateRange(today)
@@ -143,7 +145,7 @@ class KhataHomeWidgetProvider : AppWidgetProvider() {
                         val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
                         val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
                         val variant = widgetLayoutVariantFor(width, height)
-                        widgetId to render(appContext, widgetId, period, netSpent, variant)
+                        widgetId to render(appContext, widgetId, period, netSpent, variant, palette)
                     }
                     withContext(Dispatchers.Main) {
                         updates.forEach { (widgetId, views) -> manager.updateAppWidget(widgetId, views) }
@@ -162,7 +164,8 @@ class KhataHomeWidgetProvider : AppWidgetProvider() {
             widgetId: Int,
             period: WidgetPeriod,
             spent: Long,
-            variant: WidgetLayoutVariant
+            variant: WidgetLayoutVariant,
+            palette: WidgetPalette
         ): RemoteViews {
             val layoutId = when (variant) {
                 WidgetLayoutVariant.COMPACT -> R.layout.widget_khata_compact
@@ -170,16 +173,18 @@ class KhataHomeWidgetProvider : AppWidgetProvider() {
                 WidgetLayoutVariant.LARGE -> R.layout.widget_khata_large
             }
             val views = RemoteViews(context.packageName, layoutId)
+            views.setInt(R.id.widget_card, "setBackgroundResource", palette.cardBackground)
             val amount = NumberFormat.getIntegerInstance(Locale("en", "IN")).format(spent / 100)
             views.setTextViewText(R.id.widget_period_label, period.label)
+            views.setTextColor(R.id.widget_period_label, palette.title)
             views.setTextViewText(R.id.widget_total, "₹$amount")
+            views.setTextColor(R.id.widget_total, palette.primaryText)
             views.setTextViewText(
                 R.id.widget_caption,
                 if (spent == 0L) "Nothing spent ${period.caption}" else "net spent ${period.caption} · tap to open"
             )
+            views.setTextColor(R.id.widget_caption, palette.secondaryText)
 
-            val activeText = android.graphics.Color.rgb(255, 247, 233)
-            val idleText = android.graphics.Color.rgb(131, 112, 97)
             val choices = listOf(
                 Triple(WidgetPeriod.DAY, R.id.widget_period_day, ACTION_DAY),
                 Triple(WidgetPeriod.WEEK, R.id.widget_period_week, ACTION_WEEK),
@@ -188,8 +193,8 @@ class KhataHomeWidgetProvider : AppWidgetProvider() {
             )
             choices.forEachIndexed { index, (choice, viewId, action) ->
                 val isActive = choice == period
-                views.setTextColor(viewId, if (isActive) activeText else idleText)
-                views.setInt(viewId, "setBackgroundResource", if (isActive) R.drawable.widget_period_active else R.drawable.widget_period_idle)
+                views.setTextColor(viewId, if (isActive) palette.activePeriodText else palette.idlePeriodText)
+                views.setInt(viewId, "setBackgroundResource", if (isActive) palette.activePeriodBackground else palette.idlePeriodBackground)
                 bindPeriodButton(context, views, widgetId, viewId, action, choice, index)
             }
 

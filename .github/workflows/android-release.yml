@@ -88,10 +88,10 @@ jobs:
             fi
             echo
             echo "### Highlights"
-            echo "- Polished the analysis dashboard with a category donut, clearer totals, accessible light/dark text contrast, shadows, and motion-safe navigation feedback."
-            echo "- Added six independently selectable Android widgets: daily, weekly, monthly, all-time, budget progress ring, and quote."
-            echo "- Added Android wallpaper-derived colors (with an accessible fallback) and expanded quote-only native-language movie dialogue rotation across Hindi, Telugu, Tamil, Malayalam, and Kannada."
-            echo "- Hardened widget data/error handling and added budget progress/date-range regression tests; the app remains offline-first."
+            echo "- Restored Khata's droplet-gloss Dew surfaces with raised depth, reflective rims, and motion-safe press feedback, without the renderer-crashing backdrop blur graph."
+            echo "- Updated all seven launcher widget types to follow Khata's saved Light, Dark, System, or Wallpaper appearance, including the selected period pills and budget ring."
+            echo "- Added a compact, selectable month/year spending heatmap, readable full-note ambient quotes, and validated transaction CSV import/export."
+            echo "- Preserved wallpaper-derived accent colors while keeping warm paper/ink neutrals; widgets refresh immediately when the in-app theme changes."
             echo "- See the repository README for the concise feature list."
           } > "$RUNNER_TEMP/release-notes.md"
       - name: Publish or update GitHub release

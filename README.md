@@ -55,6 +55,8 @@ It tracks. That's the whole job. It does the job quietly.
 
 **Lives on your home screen.** Widgets for daily, weekly, monthly or all-time totals, and for monthly budget progress.
 
+**Feels like Khata.** Droplet-gloss Dew cards and controls with a raised, soft-touch finish. Widgets follow Khata's Light, Dark, System or Wallpaper appearance.
+
 **Has a personality.** Time-aware quotes in your language bring a little warmth to the home screen. Long notes open in full when you tap them.
 
 **Speaks your language.** Hindi, Telugu, Tamil, Malayalam and Kannada, in the original script or in English letters.

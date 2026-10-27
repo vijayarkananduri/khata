@@ -59,7 +59,12 @@ class KhataViewModel @Inject constructor(
     val categories = repository.categories.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val accounts = repository.accounts.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    init { viewModelScope.launch { repository.initialize() } }
+    init {
+        viewModelScope.launch {
+            repository.initialize()
+            preferences.syncWidgetTheme()
+        }
+    }
 
     private fun refreshWidget() = KhataHomeWidgetProvider.refreshAll(appContext)
 

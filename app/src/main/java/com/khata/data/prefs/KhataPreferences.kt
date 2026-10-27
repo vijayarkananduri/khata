@@ -15,9 +15,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import com.khata.widget.WidgetRefresh
+import com.khata.widget.KhataHomeWidgetProvider
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -70,11 +72,12 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
             p[Keys.language] = language
             p[Keys.roman] = roman
             p[Keys.budget] = budgetPaise
+            p[Keys.theme] = "SYSTEM"
             p[Keys.compare] = budgetPaise <= 0L
             p[Keys.onboarding] = true
         }
         syncWidgetSettings(language = language, roman = roman, budgetPaise = budgetPaise)
-        WidgetRefresh.refreshInstalled(context)
+        KhataHomeWidgetProvider.refreshAll(context)
     }
     suspend fun setUsername(value: String) = store.edit { it[Keys.username] = value }
     suspend fun setLanguage(value: String) {
@@ -87,7 +90,18 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
         context.getSharedPreferences("khata_widget_prefs", Context.MODE_PRIVATE).edit().putBoolean("roman_script", value).apply()
         WidgetRefresh.refreshInstalled(context)
     }
-    suspend fun setTheme(value: String) = store.edit { it[Keys.theme] = value }
+    suspend fun setTheme(value: String) {
+        store.edit { it[Keys.theme] = value }
+        context.getSharedPreferences("khata_widget_prefs", Context.MODE_PRIVATE)
+            .edit().putString("theme_mode", value).apply()
+        KhataHomeWidgetProvider.refreshAll(context)
+    }
+    suspend fun syncWidgetTheme() {
+        val themeMode = store.data.map { it[Keys.theme] ?: "SYSTEM" }.first()
+        context.getSharedPreferences("khata_widget_prefs", Context.MODE_PRIVATE)
+            .edit().putString("theme_mode", themeMode).apply()
+        KhataHomeWidgetProvider.refreshAll(context)
+    }
     suspend fun setMotion(value: String) = store.edit { it[Keys.motion] = value }
     suspend fun setHaptics(value: Boolean) = store.edit { it[Keys.haptics] = value }
     suspend fun setBudget(value: Long) {
@@ -105,6 +119,7 @@ class KhataPreferences @Inject constructor(private val store: DataStore<Preferen
         context.getSharedPreferences("khata_widget_prefs", Context.MODE_PRIVATE).edit()
             .putString("language", language)
             .putBoolean("roman_script", roman)
+            .putString("theme_mode", "SYSTEM")
             .putLong("budget_paise", budgetPaise.coerceAtLeast(0L))
             .apply()
     }
